@@ -5,5 +5,7 @@ x86/
 [Bb]in/
 [Oo]bj/
 
+.vscode
+
 .fake
 .ionide
