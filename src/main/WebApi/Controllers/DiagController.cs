@@ -3,45 +3,43 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ForcefulFi.WebApi
 {
-    [Route("api/v0/[controller]/{action=index}")] // TODO: trailing slash?
+    [Route("api/v0/[controller]/[action]")] // TODO: trailing slash?
     [ApiController]
-    public class ConfigController: ControllerBase
+    public class DiagController: ControllerBase
     {
-        // TODO: do not allow direct calls to Index()
-
         [HttpPost] // use POST, as this is a remote procedure call
-        public ActionResult<IEnumerable<string>> Index()
+        public ActionResult<IEnumerable<string>> Cmds()
         {
             // this is just for demonstration purposes
-            return new string[] { "config", "Index" }; // TODO: async?
+            return new string[] { "diag", "Cmds" }; // TODO: async?
         }
 
         [HttpPost] // use POST, as this is a remote procedure call
-        public ActionResult<IEnumerable<string>> ProfileApply() // TODO: nested URL
+        public ActionResult<IEnumerable<string>> CmdsClear() // TODO: nested URL
         {
             // this is just for demonstration purposes
-            return new string[] { "config", "Profile", "Apply" }; // TODO: async?
+            return new string[] { "diag", "Cmds", "Clear" }; // TODO: async?
         }
 
         [HttpPost] // use POST, as this is a remote procedure call
-        public ActionResult<IEnumerable<string>> Edit()
+        public ActionResult<IEnumerable<string>> CmdsSetTime() // TODO: nested URL // TODO: hyphen in URL
         {
             // this is just for demonstration purposes
-            return new string[] { "config", "Edit" }; // TODO: async?
+            return new string[] { "diag", "Cmds", "SetTime" }; // TODO: async?
         }
 
         [HttpPost] // use POST, as this is a remote procedure call
-        public ActionResult<IEnumerable<string>> Replace()
+        public ActionResult<IEnumerable<string>> Profile()
         {
             // this is just for demonstration purposes
-            return new string[] { "config", "Replace" }; // TODO: async?
+            return new string[] { "diag", "Profile" }; // TODO: async?
         }
 
         [HttpPost] // use POST, as this is a remote procedure call
-        public ActionResult<IEnumerable<string>> Show()
+        public ActionResult<IEnumerable<string>> Sys()
         {
             // this is just for demonstration purposes
-            return new string[] { "config", "Show" }; // TODO: async?
+            return new string[] { "diag", "Sys" }; // TODO: async?
         }
     }
 } // namespace ForcefulFi.WebApi

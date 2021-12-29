@@ -5,7 +5,7 @@ namespace ForcefulFi.WebApi
 {
     [Route("api/v0/[controller]/{action=index}")] // TODO: trailing slash?
     [ApiController]
-    public class ConfigController: ControllerBase
+    public class BootstrapController: ControllerBase
     {
         // TODO: do not allow direct calls to Index()
 
@@ -13,35 +13,42 @@ namespace ForcefulFi.WebApi
         public ActionResult<IEnumerable<string>> Index()
         {
             // this is just for demonstration purposes
-            return new string[] { "config", "Index" }; // TODO: async?
+            return new string[] { "bootstrap", "Index" }; // TODO: async?
         }
 
         [HttpPost] // use POST, as this is a remote procedure call
-        public ActionResult<IEnumerable<string>> ProfileApply() // TODO: nested URL
+        public ActionResult<IEnumerable<string>> Add()
         {
             // this is just for demonstration purposes
-            return new string[] { "config", "Profile", "Apply" }; // TODO: async?
+            return new string[] { "bootstrap", "Add" }; // TODO: async?
         }
 
         [HttpPost] // use POST, as this is a remote procedure call
-        public ActionResult<IEnumerable<string>> Edit()
+        public ActionResult<IEnumerable<string>> AddDefault() // TODO: nested URL
         {
             // this is just for demonstration purposes
-            return new string[] { "config", "Edit" }; // TODO: async?
+            return new string[] { "bootstrap", "Add", "Default" }; // TODO: async?
         }
 
         [HttpPost] // use POST, as this is a remote procedure call
-        public ActionResult<IEnumerable<string>> Replace()
+        public ActionResult<IEnumerable<string>> List()
         {
             // this is just for demonstration purposes
-            return new string[] { "config", "Replace" }; // TODO: async?
+            return new string[] { "bootstrap", "List" }; // TODO: async?
         }
 
         [HttpPost] // use POST, as this is a remote procedure call
-        public ActionResult<IEnumerable<string>> Show()
+        public ActionResult<IEnumerable<string>> Rm()
         {
             // this is just for demonstration purposes
-            return new string[] { "config", "Show" }; // TODO: async?
+            return new string[] { "bootstrap", "Rm" }; // TODO: async?
+        }
+
+        [HttpPost] // use POST, as this is a remote procedure call
+        public ActionResult<IEnumerable<string>> RmAll() // TODO: nested URL
+        {
+            // this is just for demonstration purposes
+            return new string[] { "bootstrap", "Rm", "All" }; // TODO: async?
         }
     }
 } // namespace ForcefulFi.WebApi

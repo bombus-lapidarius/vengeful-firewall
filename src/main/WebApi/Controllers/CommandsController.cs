@@ -1,0 +1,26 @@
+using System.Collections.Generic;
+using Microsoft.AspNetCore.Mvc;
+
+namespace ForcefulFi.WebApi
+{
+    [Route("api/v0/[controller]/{action=index}")] // TODO: trailing slash?
+    [ApiController]
+    public class CommandsController: ControllerBase
+    {
+        // TODO: do not allow direct calls to Index()
+
+        [HttpPost] // use POST, as this is a remote procedure call
+        public ActionResult<IEnumerable<string>> Index()
+        {
+            // this is just for demonstration purposes
+            return new string[] { "commands", "Index" }; // TODO: async?
+        }
+
+        [HttpPost] // use POST, as this is a remote procedure call
+        public ActionResult<IEnumerable<string>> CompletionBash() // TODO: nested URL
+        {
+            // this is just for demonstration purposes
+            return new string[] { "commands", "Completion", "Bash" }; // TODO: async?
+        }
+    }
+} // namespace ForcefulFi.WebApi
