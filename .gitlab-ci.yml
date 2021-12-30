@@ -1,0 +1,56 @@
+image: mcr.microsoft.com/dotnet/sdk:5.0
+
+
+stages:
+  - build
+  - publish
+  # - test
+  # - deploy
+
+
+# run builds and tests in parallel for all components
+build WebApi for linux-x64:
+  stage: build
+  script:
+    - dotnet build -r linux-x64 -c Release ./src/main/WebApi/ForcefulFi.WebApi.csproj
+# run builds and tests in parallel for all components
+build WebApi for win10-x64:
+  stage: build
+  script:
+    - dotnet build -r win10-x64 -c Release ./src/main/WebApi/ForcefulFi.WebApi.csproj
+
+
+# run builds and tests in parallel for all components
+publish WebApi for linux-x64:
+  stage: publish
+  # create a single executable native binary
+  script:
+    - "dotnet publish -r linux-x64 -c Release /p:PublishSingleFile=true ./src/main/WebApi/ForcefulFi.WebApi.csproj"
+publish WebApi for win10-x64:
+  stage: publish
+  # create a single executable native binary
+  script:
+    - "dotnet publish -r win10-x64 -c Release /p:PublishSingleFile=true ./src/main/WebApi/ForcefulFi.WebApi.csproj"
+
+
+# run builds and tests in parallel for all components
+# test WebApi for linux-x64:
+  # stage: test
+  # script:
+    # - dotnet test -c Release ./src/test/WebApi.Tests/ForcefulFi.WebApi.Tests.csproj
+# test WebApi for win10-x64:
+  # stage: test
+  # script:
+    # - dotnet test -c Release ./src/test/WebApi.Tests/ForcefulFi.WebApi.Tests.csproj
+
+
+# run builds and tests in parallel for all components
+# deploy WebApi for linux-x64:
+  # stage: deploy
+  # script:
+    # - TODO
+# run builds and tests in parallel for all components
+# deploy WebApi for win10-x64:
+  # stage: deploy
+  # script:
+    # - TODO
