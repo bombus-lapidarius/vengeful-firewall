@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ForcefulFi.WebApi
 {
-    [Route("api/v0/[controller]/[action]")] // TODO: trailing slash?
+    [Route("api/v0/[controller]/[action]")]
     [ApiController]
     public class BitswapController: ControllerBase
     {
