@@ -13,11 +13,19 @@ build WebApi for linux-x64:
   stage: build
   script:
     - dotnet build -r linux-x64 -c Release ./src/main/WebApi/ForcefulFi.WebApi.csproj
+  artifacts:
+    paths:
+      - src/main/WebApi/bin/Release/
+      - src/main/WebApi/obj/Release/
 # run builds and tests in parallel for all components
 build WebApi for win10-x64:
   stage: build
   script:
     - dotnet build -r win10-x64 -c Release ./src/main/WebApi/ForcefulFi.WebApi.csproj
+  artifacts:
+    paths:
+      - src/main/WebApi/bin/Release/
+      - src/main/WebApi/obj/Release/
 
 
 # run builds and tests in parallel for all components
@@ -26,11 +34,23 @@ publish WebApi for linux-x64:
   # create a single executable native binary
   script:
     - "dotnet publish -r linux-x64 -c Release /p:PublishSingleFile=true ./src/main/WebApi/ForcefulFi.WebApi.csproj"
+  dependencies:
+    - "build WebApi for linux-x64"
+  artifacts:
+    paths:
+      - src/main/WebApi/bin/Release/
+      - src/main/WebApi/obj/Release/
 publish WebApi for win10-x64:
   stage: publish
   # create a single executable native binary
   script:
     - "dotnet publish -r win10-x64 -c Release /p:PublishSingleFile=true ./src/main/WebApi/ForcefulFi.WebApi.csproj"
+  dependencies:
+    - "build WebApi for win10-x64"
+  artifacts:
+    paths:
+      - src/main/WebApi/bin/Release/
+      - src/main/WebApi/obj/Release/
 
 
 # run builds and tests in parallel for all components
