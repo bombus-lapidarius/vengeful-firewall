@@ -57,28 +57,32 @@ namespace ForcefulFi.WebApi
         }
 
         [HttpPost] // use POST, as this is a remote procedure call
-        public ActionResult<IEnumerable<string>> PatchAddLink() // TODO: nested URL // TODO: hyphen in URL
+        [ActionName("add-link")] // hyphen in URL
+        public ActionResult<IEnumerable<string>> PatchAddLink() // TODO: nested URL
         {
             // this is just for demonstration purposes
             return new string[] { "object", "Patch", "AddLink" }; // TODO: async?
         }
 
         [HttpPost] // use POST, as this is a remote procedure call
-        public ActionResult<IEnumerable<string>> PatchAppendData() // TODO: nested URL // TODO: hyphen in URL
+        [ActionName("append-data")] // hyphen in URL
+        public ActionResult<IEnumerable<string>> PatchAppendData() // TODO: nested URL
         {
             // this is just for demonstration purposes
             return new string[] { "object", "Patch", "AppendData" }; // TODO: async?
         }
 
         [HttpPost] // use POST, as this is a remote procedure call
-        public ActionResult<IEnumerable<string>> PatchRmLink() // TODO: nested URL // TODO: hyphen in URL
+        [ActionName("rm-link")] // hyphen in URL
+        public ActionResult<IEnumerable<string>> PatchRmLink() // TODO: nested URL
         {
             // this is just for demonstration purposes
             return new string[] { "object", "Patch", "RmLink" }; // TODO: async?
         }
 
         [HttpPost] // use POST, as this is a remote procedure call
-        public ActionResult<IEnumerable<string>> PatchSetData() // TODO: nested URL // TODO: hyphen in URL
+        [ActionName("set-data")] // hyphen in URL
+        public ActionResult<IEnumerable<string>> PatchSetData() // TODO: nested URL
         {
             // this is just for demonstration purposes
             return new string[] { "object", "Patch", "SetData" }; // TODO: async?

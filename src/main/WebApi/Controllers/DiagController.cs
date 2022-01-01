@@ -22,7 +22,8 @@ namespace ForcefulFi.WebApi
         }
 
         [HttpPost] // use POST, as this is a remote procedure call
-        public ActionResult<IEnumerable<string>> CmdsSetTime() // TODO: nested URL // TODO: hyphen in URL
+        [ActionName("set-time")] // hyphen in URL
+        public ActionResult<IEnumerable<string>> CmdsSetTime() // TODO: nested URL
         {
             // this is just for demonstration purposes
             return new string[] { "diag", "Cmds", "SetTime" }; // TODO: async?
