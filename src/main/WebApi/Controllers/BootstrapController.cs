@@ -3,49 +3,51 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ForcefulFi.WebApi
 {
-    [Route("api/v0/[controller]/{action=index}")]
+    [Route("api/v0/[controller]")] // common for all actions below
     [ApiController]
     public class BootstrapController: ControllerBase
     {
-        // TODO: do not allow direct calls to Index()
+        // use POST, as these are all remote procedure calls
 
-        [HttpPost] // use POST, as this is a remote procedure call
+        [HttpPost] // the default action
         public ActionResult<IEnumerable<string>> Index()
         {
             // this is just for demonstration purposes
             return new string[] { "bootstrap", "Index" }; // TODO: async?
         }
 
-        [HttpPost] // use POST, as this is a remote procedure call
+        [HttpPost("[action]")]
         public ActionResult<IEnumerable<string>> Add()
         {
             // this is just for demonstration purposes
             return new string[] { "bootstrap", "Add" }; // TODO: async?
         }
 
-        [HttpPost] // use POST, as this is a remote procedure call
-        public ActionResult<IEnumerable<string>> AddDefault() // TODO: nested URL
+        // this endpoint is nested, specify its url explicitly
+        [HttpPost("add/default")]
+        public ActionResult<IEnumerable<string>> AddDefault()
         {
             // this is just for demonstration purposes
             return new string[] { "bootstrap", "Add", "Default" }; // TODO: async?
         }
 
-        [HttpPost] // use POST, as this is a remote procedure call
+        [HttpPost("[action]")]
         public ActionResult<IEnumerable<string>> List()
         {
             // this is just for demonstration purposes
             return new string[] { "bootstrap", "List" }; // TODO: async?
         }
 
-        [HttpPost] // use POST, as this is a remote procedure call
+        [HttpPost("[action]")]
         public ActionResult<IEnumerable<string>> Rm()
         {
             // this is just for demonstration purposes
             return new string[] { "bootstrap", "Rm" }; // TODO: async?
         }
 
-        [HttpPost] // use POST, as this is a remote procedure call
-        public ActionResult<IEnumerable<string>> RmAll() // TODO: nested URL
+        // this endpoint is nested, specify its url explicitly
+        [HttpPost("rm/all")]
+        public ActionResult<IEnumerable<string>> RmAll()
         {
             // this is just for demonstration purposes
             return new string[] { "bootstrap", "Rm", "All" }; // TODO: async?

@@ -3,20 +3,20 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ForcefulFi.WebApi
 {
-    [Route("api/v0/[controller]/{action=index}")]
+    [Route("api/v0/[controller]")] // common for all actions below
     [ApiController]
     public class VersionController: ControllerBase
     {
-        // TODO: do not allow direct calls to Index()
-        
-        [HttpPost] // use POST, as this is a remote procedure call
+        // use POST, as these are all remote procedure calls
+
+        [HttpPost] // the default action
         public ActionResult<IEnumerable<string>> Index()
         {
             // this is just for demonstration purposes
             return new string[] { "version", "Index" }; // TODO: async?
         }
 
-        [HttpPost] // use POST, as this is a remote procedure call
+        [HttpPost("[action]")]
         public ActionResult<IEnumerable<string>> Deps()
         {
             // this is just for demonstration purposes

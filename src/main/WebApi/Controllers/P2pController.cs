@@ -3,47 +3,51 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ForcefulFi.WebApi
 {
-    [Route("api/v0/[controller]/[action]")]
+    [Route("api/v0/[controller]")] // common for all actions below
     [ApiController]
     public class P2pController: ControllerBase
     {
-        [HttpPost] // use POST, as this is a remote procedure call
+        // use POST, as these are all remote procedure calls
+
+        [HttpPost("[action]")]
         public ActionResult<IEnumerable<string>> Close()
         {
             // this is just for demonstration purposes
             return new string[] { "p2p", "Close" }; // TODO: async?
         }
 
-        [HttpPost] // use POST, as this is a remote procedure call
+        [HttpPost("[action]")]
         public ActionResult<IEnumerable<string>> Forward()
         {
             // this is just for demonstration purposes
             return new string[] { "p2p", "Forward" }; // TODO: async?
         }
 
-        [HttpPost] // use POST, as this is a remote procedure call
+        [HttpPost("[action]")]
         public ActionResult<IEnumerable<string>> Listen()
         {
             // this is just for demonstration purposes
             return new string[] { "p2p", "Listen" }; // TODO: async?
         }
 
-        [HttpPost] // use POST, as this is a remote procedure call
+        [HttpPost("[action]")]
         public ActionResult<IEnumerable<string>> Ls()
         {
             // this is just for demonstration purposes
             return new string[] { "p2p", "Ls" }; // TODO: async?
         }
 
-        [HttpPost] // use POST, as this is a remote procedure call
-        public ActionResult<IEnumerable<string>> StreamClose() // TODO: nested URL
+        // this endpoint is nested, specify its url explicitly
+        [HttpPost("stream/close")]
+        public ActionResult<IEnumerable<string>> StreamClose()
         {
             // this is just for demonstration purposes
             return new string[] { "p2p", "Stream", "Close" }; // TODO: async?
         }
 
-        [HttpPost] // use POST, as this is a remote procedure call
-        public ActionResult<IEnumerable<string>> StreamLs() // TODO: nested URL
+        // this endpoint is nested, specify its url explicitly
+        [HttpPost("stream/ls")]
+        public ActionResult<IEnumerable<string>> StreamLs()
         {
             // this is just for demonstration purposes
             return new string[] { "p2p", "Stream", "Ls" }; // TODO: async?

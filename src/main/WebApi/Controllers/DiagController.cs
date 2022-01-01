@@ -3,40 +3,44 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ForcefulFi.WebApi
 {
-    [Route("api/v0/[controller]/[action]")]
+    [Route("api/v0/[controller]")] // common for all actions below
     [ApiController]
     public class DiagController: ControllerBase
     {
-        [HttpPost] // use POST, as this is a remote procedure call
+        // use POST, as these are all remote procedure calls
+
+        [HttpPost("[action]")]
         public ActionResult<IEnumerable<string>> Cmds()
         {
             // this is just for demonstration purposes
             return new string[] { "diag", "Cmds" }; // TODO: async?
         }
 
-        [HttpPost] // use POST, as this is a remote procedure call
-        public ActionResult<IEnumerable<string>> CmdsClear() // TODO: nested URL
+        // this endpoint is nested, specify its url explicitly
+        [HttpPost("cmds/clear")]
+        public ActionResult<IEnumerable<string>> CmdsClear()
         {
             // this is just for demonstration purposes
             return new string[] { "diag", "Cmds", "Clear" }; // TODO: async?
         }
 
-        [HttpPost] // use POST, as this is a remote procedure call
+        // this endpoint is nested, specify its url explicitly
+        [HttpPost("cmds/set-time")]
         [ActionName("set-time")] // hyphen in URL
-        public ActionResult<IEnumerable<string>> CmdsSetTime() // TODO: nested URL
+        public ActionResult<IEnumerable<string>> CmdsSetTime()
         {
             // this is just for demonstration purposes
             return new string[] { "diag", "Cmds", "SetTime" }; // TODO: async?
         }
 
-        [HttpPost] // use POST, as this is a remote procedure call
+        [HttpPost("[action]")]
         public ActionResult<IEnumerable<string>> Profile()
         {
             // this is just for demonstration purposes
             return new string[] { "diag", "Profile" }; // TODO: async?
         }
 
-        [HttpPost] // use POST, as this is a remote procedure call
+        [HttpPost("[action]")]
         public ActionResult<IEnumerable<string>> Sys()
         {
             // this is just for demonstration purposes

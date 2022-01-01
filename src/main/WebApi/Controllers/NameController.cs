@@ -3,43 +3,48 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ForcefulFi.WebApi
 {
-    [Route("api/v0/[controller]/[action]")]
+    [Route("api/v0/[controller]")] // common for all actions below
     [ApiController]
     public class NameController: ControllerBase
     {
-        [HttpPost] // use POST, as this is a remote procedure call
+        // use POST, as these are all remote procedure calls
+
+        [HttpPost("[action]")]
         public ActionResult<IEnumerable<string>> Publish()
         {
             // this is just for demonstration purposes
             return new string[] { "name", "Publish" }; // TODO: async?
         }
 
-        [HttpPost] // use POST, as this is a remote procedure call
+        [HttpPost("[action]")]
         public ActionResult<IEnumerable<string>> Resolve()
         {
             // this is just for demonstration purposes
             return new string[] { "name", "Resolve" }; // TODO: async?
         }
 
-        [HttpPost] // use POST, as this is a remote procedure call
-        public ActionResult<IEnumerable<string>> PubSubCancel() // TODO: nested URL
+        // this endpoint is nested, specify its url explicitly
+        [HttpPost("pubsub/cancel")]
+        public ActionResult<IEnumerable<string>> PubsubCancel()
         {
             // this is just for demonstration purposes
-            return new string[] { "name", "PubSub", "Cancel" }; // TODO: async?
+            return new string[] { "name", "Pubsub", "Cancel" }; // TODO: async?
         }
 
-        [HttpPost] // use POST, as this is a remote procedure call
-        public ActionResult<IEnumerable<string>> PubSubState() // TODO: nested URL
+        // this endpoint is nested, specify its url explicitly
+        [HttpPost("pubsub/state")]
+        public ActionResult<IEnumerable<string>> PubsubState()
         {
             // this is just for demonstration purposes
-            return new string[] { "name", "PubSub", "State" }; // TODO: async?
+            return new string[] { "name", "Pubsub", "State" }; // TODO: async?
         }
 
-        [HttpPost] // use POST, as this is a remote procedure call
-        public ActionResult<IEnumerable<string>> PubSubSubs() // TODO: nested URL
+        // this endpoint is nested, specify its url explicitly
+        [HttpPost("pubsub/subs")]
+        public ActionResult<IEnumerable<string>> PubsubSubs()
         {
             // this is just for demonstration purposes
-            return new string[] { "name", "PubSub", "Subs" }; // TODO: async?
+            return new string[] { "name", "Pubsub", "Subs" }; // TODO: async?
         }
     }
 } // namespace ForcefulFi.WebApi

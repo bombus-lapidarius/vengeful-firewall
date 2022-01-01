@@ -3,88 +3,97 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ForcefulFi.WebApi
 {
-    [Route("api/v0/[controller]/[action]")]
+    [Route("api/v0/[controller]")] // common for all actions below
     [ApiController]
     public class SwarmController: ControllerBase
     {
-        [HttpPost] // use POST, as this is a remote procedure call
+        // use POST, as these are all remote procedure calls
+
+        [HttpPost("[action]")]
         public ActionResult<IEnumerable<string>> Addrs()
         {
             // this is just for demonstration purposes
             return new string[] { "swarm", "Addrs" }; // TODO: async?
         }
 
-        [HttpPost] // use POST, as this is a remote procedure call
-        public ActionResult<IEnumerable<string>> AddrsListen() // TODO: nested URL
+        // this endpoint is nested, specify its url explicitly
+        [HttpPost("addrs/listen")]
+        public ActionResult<IEnumerable<string>> AddrsListen()
         {
             // this is just for demonstration purposes
             return new string[] { "swarm", "Addrs", "Listen" }; // TODO: async?
         }
 
-        [HttpPost] // use POST, as this is a remote procedure call
-        public ActionResult<IEnumerable<string>> AddrsLocal() // TODO: nested URL
+        // this endpoint is nested, specify its url explicitly
+        [HttpPost("addrs/local")]
+        public ActionResult<IEnumerable<string>> AddrsLocal()
         {
             // this is just for demonstration purposes
             return new string[] { "swarm", "Addrs", "Local" }; // TODO: async?
         }
 
-        [HttpPost] // use POST, as this is a remote procedure call
+        [HttpPost("[action]")]
         public ActionResult<IEnumerable<string>> Connect()
         {
             // this is just for demonstration purposes
             return new string[] { "swarm", "Connect" }; // TODO: async?
         }
 
-        [HttpPost] // use POST, as this is a remote procedure call
+        [HttpPost("[action]")]
         public ActionResult<IEnumerable<string>> Disconnect()
         {
             // this is just for demonstration purposes
             return new string[] { "swarm", "Disconnect" }; // TODO: async?
         }
 
-        [HttpPost] // use POST, as this is a remote procedure call
+        [HttpPost("[action]")]
         public ActionResult<IEnumerable<string>> Filters()
         {
             // this is just for demonstration purposes
             return new string[] { "swarm", "Filters" }; // TODO: async?
         }
 
-        [HttpPost] // use POST, as this is a remote procedure call
-        public ActionResult<IEnumerable<string>> FiltersAdd() // TODO: nested URL
+        // this endpoint is nested, specify its url explicitly
+        [HttpPost("filters/add")]
+        public ActionResult<IEnumerable<string>> FiltersAdd()
         {
             // this is just for demonstration purposes
             return new string[] { "swarm", "Filters", "Add" }; // TODO: async?
         }
 
-        [HttpPost] // use POST, as this is a remote procedure call
-        public ActionResult<IEnumerable<string>> FiltersRm() // TODO: nested URL
+        // this endpoint is nested, specify its url explicitly
+        [HttpPost("filters/rm")]
+        public ActionResult<IEnumerable<string>> FiltersRm()
         {
             // this is just for demonstration purposes
             return new string[] { "swarm", "Filters", "Rm" }; // TODO: async?
         }
 
-        [HttpPost] // use POST, as this is a remote procedure call
-        public ActionResult<IEnumerable<string>> PeeringAdd() // TODO: nested URL
+        // this endpoint is nested, specify its url explicitly
+        [HttpPost("peering/add")]
+        public ActionResult<IEnumerable<string>> PeeringAdd()
         {
             // this is just for demonstration purposes
             return new string[] { "swarm", "Peering", "Add" }; // TODO: async?
         }
 
-        [HttpPost] // use POST, as this is a remote procedure call
-        public ActionResult<IEnumerable<string>> PeeringLs() // TODO: nested URL
+        // this endpoint is nested, specify its url explicitly
+        [HttpPost("peering/ls")]
+        public ActionResult<IEnumerable<string>> PeeringLs()
         {
             // this is just for demonstration purposes
             return new string[] { "swarm", "Peering", "Ls" }; // TODO: async?
         }
 
-        [HttpPost] // use POST, as this is a remote procedure call
-        public ActionResult<IEnumerable<string>> PeeringRm() // TODO: nested URL
+        // this endpoint is nested, specify its url explicitly
+        [HttpPost("peering/rm")]
+        public ActionResult<IEnumerable<string>> PeeringRm()
         {
             // this is just for demonstration purposes
             return new string[] { "swarm", "Peering", "Rm" }; // TODO: async?
         }
 
-        [HttpPost] // use POST, as this is a remote procedure call
+        [HttpPost("[action]")]
         public ActionResult<IEnumerable<string>> Peers()
         {
             // this is just for demonstration purposes

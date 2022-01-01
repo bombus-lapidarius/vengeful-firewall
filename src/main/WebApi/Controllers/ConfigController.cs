@@ -3,41 +3,42 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ForcefulFi.WebApi
 {
-    [Route("api/v0/[controller]/{action=index}")]
+    [Route("api/v0/[controller]")] // common for all actions below
     [ApiController]
     public class ConfigController: ControllerBase
     {
-        // TODO: do not allow direct calls to Index()
+        // use POST, as these are all remote procedure calls
 
-        [HttpPost] // use POST, as this is a remote procedure call
+        [HttpPost] // the default action
         public ActionResult<IEnumerable<string>> Index()
         {
             // this is just for demonstration purposes
             return new string[] { "config", "Index" }; // TODO: async?
         }
 
-        [HttpPost] // use POST, as this is a remote procedure call
-        public ActionResult<IEnumerable<string>> ProfileApply() // TODO: nested URL
+        // this endpoint is nested, specify its url explicitly
+        [HttpPost("profile/apply")]
+        public ActionResult<IEnumerable<string>> ProfileApply()
         {
             // this is just for demonstration purposes
             return new string[] { "config", "Profile", "Apply" }; // TODO: async?
         }
 
-        [HttpPost] // use POST, as this is a remote procedure call
+        [HttpPost("[action]")]
         public ActionResult<IEnumerable<string>> Edit()
         {
             // this is just for demonstration purposes
             return new string[] { "config", "Edit" }; // TODO: async?
         }
 
-        [HttpPost] // use POST, as this is a remote procedure call
+        [HttpPost("[action]")]
         public ActionResult<IEnumerable<string>> Replace()
         {
             // this is just for demonstration purposes
             return new string[] { "config", "Replace" }; // TODO: async?
         }
 
-        [HttpPost] // use POST, as this is a remote procedure call
+        [HttpPost("[action]")]
         public ActionResult<IEnumerable<string>> Show()
         {
             // this is just for demonstration purposes

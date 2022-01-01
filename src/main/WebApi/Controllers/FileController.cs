@@ -3,11 +3,13 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ForcefulFi.WebApi
 {
-    [Route("api/v0/[controller]/[action]")]
+    [Route("api/v0/[controller]")] // common for all actions below
     [ApiController]
     public class FileController: ControllerBase
     {
-        [HttpPost] // use POST, as this is a remote procedure call
+        // use POST, as these are all remote procedure calls
+
+        [HttpPost("[action]")]
         public ActionResult<IEnumerable<string>> Ls()
         {
             // this is just for demonstration purposes
