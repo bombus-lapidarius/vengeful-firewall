@@ -9,6 +9,23 @@ stages:
 
 
 # run builds and tests in parallel for all components
+build Encryption for linux-x64:
+  stage: build
+  script:
+    - dotnet build -r linux-x64 -c Release ./src/main/Encryption/ForcefulFi.Encryption.fsproj
+  artifacts:
+    paths:
+      - src/main/Encryption/bin/Release/
+      - src/main/Encryption/obj/Release/
+# run builds and tests in parallel for all components
+build Encryption for win10-x64:
+  stage: build
+  script:
+    - dotnet build -r win10-x64 -c Release ./src/main/Encryption/ForcefulFi.Encryption.fsproj
+  artifacts:
+    paths:
+      - src/main/Encryption/bin/Release/
+      - src/main/Encryption/obj/Release/
 build WebApi for linux-x64:
   stage: build
   script:
