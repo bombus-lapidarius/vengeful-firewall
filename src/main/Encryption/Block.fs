@@ -61,6 +61,10 @@ SOFTWARE.
 open System.Security.Cryptography
 
 
+type GenericContent = Types.GenericContent
+type GenericContentId = Types.GenericContentId
+
+
 type PlainContent = Types.PlainContent
 type EncryptedContent = Types.EncryptedContent
 
@@ -72,7 +76,7 @@ type EncryptedContentId = Types.EncryptedContentId
 type Cipher = Types.Cipher
 
 
-type CalcPlainCidType = PlainContent -> PlainContentId
+type CalculateCidType = GenericContent -> GenericContentId
 
 
 // parameterise based on these function types to enable efficient unit testing
@@ -104,9 +108,9 @@ let decryptBlock (cipher: Cipher) (key: byte[]) (input: EncryptedContent):
 
     use aes = createCryptoEngine cipher key // TODO: dangling ref?
     let cbcDecryptor = aes.CreateDecryptor()
-    let (Types.EncryptedContent inputStream) = input
+    let (Types.EncryptedContent (Types.GenericContent inputStream)) = input
     let output = new CryptoStream(inputStream, cbcDecryptor, CryptoStreamMode.Read, false) // TODO: does this return a usable stream object?
-    Types.PlainContent output // construct the tagged union result
+    Types.PlainContent (Types.GenericContent output)
 
 
 let encryptBlock (cipher: Cipher) (key: byte[]) (input: PlainContent):
@@ -114,9 +118,9 @@ let encryptBlock (cipher: Cipher) (key: byte[]) (input: PlainContent):
 
     use aes = createCryptoEngine cipher key // TODO: dangling ref?
     let cbcEncryptor = aes.CreateEncryptor()
-    let (Types.PlainContent inputStream) = input
+    let (Types.PlainContent (Types.GenericContent inputStream)) = input
     let output = new CryptoStream(inputStream, cbcEncryptor, CryptoStreamMode.Read, false) // TODO: does this return a usable stream object?
-    Types.EncryptedContent output // construct the tagged union result
+    Types.EncryptedContent (Types.GenericContent output)
 
 
 let decryptGet (getRaw: GetRawType) (fetchCid: FetchCidType)
@@ -129,17 +133,20 @@ let decryptGet (getRaw: GetRawType) (fetchCid: FetchCidType)
         |> getRaw // returns EncryptedContent
         // TODO: hash here to verify that the encrypted content returned matches the fetched cid?
         |> (decryptBlock cipher key) // returns PlainContent
-    | Some(data) -> data
+    | Some(result) -> result
 
 
 let encryptPut (putRaw: PutRawType) (storeCid: StoreCidType)
-    (calcPlainCid: CalcPlainCidType) // TODO: asymmetry OK here?
+    (calculateCid: CalculateCidType) // TODO: asymmetry OK here?
     (cache: Cache.PlainDataCache) (cipher: Cipher) (key: byte[])
-    (data: PlainContent): PlainContentId =
+    (plainContent: PlainContent): PlainContentId =
 
-    let plainCid = calcPlainCid data // we can't pass on plaintext to the IPFS
-    Cache.putIntoCache cache plainCid data // returns unit
-    encryptBlock cipher key data // returns EncryptedContent
+    // we can't pass on plaintext to our IPFS node
+    // instead, we have to calculate the plaintext cid ourselves
+    let (Types.PlainContent input) = plainContent // deconstruct
+    let plainCid = Types.PlainContentId (calculateCid input)
+    Cache.putIntoCache cache plainCid plainContent // returns unit
+    encryptBlock cipher key plainContent // returns EncryptedContent
     |> putRaw // returns EncryptedContentId
     |> (storeCid cipher key) plainCid // returns unit
     plainCid // TODO: hash here to verify the cid returned by the underlying IPFS node?
