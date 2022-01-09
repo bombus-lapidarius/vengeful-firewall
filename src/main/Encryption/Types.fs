@@ -61,16 +61,16 @@ SOFTWARE.
 open System.IO
 
 
-type GenericContent = GenericContent of Stream
 type GenericContentId = GenericContentId of byte[]
-
-
-type PlainContent = PlainContent of GenericContent
-type EncryptedContent = EncryptedContent of GenericContent
+type GenericContent = GenericContent of Stream
 
 
 type PlainContentId = PlainContentId of GenericContentId
+type PlainContent = PlainContent of GenericContent
+
+
 type EncryptedContentId = EncryptedContentId of GenericContentId
+type EncryptedContent = EncryptedContent of GenericContent
 
 
 type Cipher =

@@ -61,16 +61,16 @@ SOFTWARE.
 open System.Security.Cryptography
 
 
-type GenericContent = Types.GenericContent
 type GenericContentId = Types.GenericContentId
-
-
-type PlainContent = Types.PlainContent
-type EncryptedContent = Types.EncryptedContent
+type GenericContent = Types.GenericContent
 
 
 type PlainContentId = Types.PlainContentId
+type PlainContent = Types.PlainContent
+
+
 type EncryptedContentId = Types.EncryptedContentId
+type EncryptedContent = Types.EncryptedContent
 
 
 type Cipher = Types.Cipher

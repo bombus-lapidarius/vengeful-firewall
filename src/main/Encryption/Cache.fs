@@ -58,12 +58,12 @@ SOFTWARE.
 ############################################################################# *)
 
 
-type PlainContent = Types.PlainContent
-type EncryptedContent = Types.EncryptedContent
-
-
 type PlainContentId = Types.PlainContentId
+type PlainContent = Types.PlainContent
+
+
 type EncryptedContentId = Types.EncryptedContentId
+type EncryptedContent = Types.EncryptedContent
 
 
 type PlainDataCache = int option // TODO
