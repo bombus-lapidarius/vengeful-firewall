@@ -1,4 +1,4 @@
-module Encryption.Cache
+module VengefulFi.Encryption.Cache
 
 
 (* #############################################################################

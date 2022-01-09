@@ -1,4 +1,4 @@
-// class ForcefulFi.WebApi.BootstrapController
+// class VengefulFi.WebApi.BootstrapController
 
 
 /* #############################################################################
@@ -61,7 +61,7 @@ SOFTWARE.
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Mvc;
 
-namespace ForcefulFi.WebApi
+namespace VengefulFi.WebApi
 {
     [Route("api/v0/[controller]")] // common for all actions below
     [ApiController]
@@ -113,4 +113,4 @@ namespace ForcefulFi.WebApi
             return new string[] { "bootstrap", "Rm", "All" }; // TODO: async?
         }
     }
-} // namespace ForcefulFi.WebApi
+} // namespace VengefulFi.WebApi

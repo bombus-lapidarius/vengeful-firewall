@@ -1,4 +1,4 @@
-﻿module Encryption.Block
+﻿module VengefulFi.Encryption.Block
 
 
 (* #############################################################################

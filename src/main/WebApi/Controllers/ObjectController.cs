@@ -1,4 +1,4 @@
-// class ForcefulFi.WebApi.ObjectController
+// class VengefulFi.WebApi.ObjectController
 
 
 /* #############################################################################
@@ -61,7 +61,7 @@ SOFTWARE.
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Mvc;
 
-namespace ForcefulFi.WebApi
+namespace VengefulFi.WebApi
 {
     [Route("api/v0/[controller]")] // common for all actions below
     [ApiController]
@@ -154,4 +154,4 @@ namespace ForcefulFi.WebApi
             return new string[] { "object", "Patch", "SetData" }; // TODO: async?
         }
     }
-} // namespace ForcefulFi.WebApi
+} // namespace VengefulFi.WebApi

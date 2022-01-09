@@ -1,4 +1,4 @@
-// class ForcefulFi.WebApi.AddController
+// class VengefulFi.WebApi.AddController
 
 
 /* #############################################################################
@@ -61,7 +61,7 @@ SOFTWARE.
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Mvc;
 
-namespace ForcefulFi.WebApi
+namespace VengefulFi.WebApi
 {
     [Route("api/v0/[controller]")] // common for all actions below
     [ApiController]
@@ -76,4 +76,4 @@ namespace ForcefulFi.WebApi
             return new string[] { "add", "Index" }; // TODO: async?
         }
     }
-} // namespace ForcefulFi.WebApi
+} // namespace VengefulFi.WebApi

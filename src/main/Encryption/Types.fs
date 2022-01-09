@@ -1,4 +1,4 @@
-module Encryption.Types
+module VengefulFi.Encryption.Types
 
 
 (* #############################################################################

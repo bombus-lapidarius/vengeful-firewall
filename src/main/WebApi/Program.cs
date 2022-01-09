@@ -58,7 +58,7 @@ SOFTWARE.
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
 
-namespace ForcefulFi.WebApi
+namespace VengefulFi.WebApi
 {
     public class Program
     {
@@ -74,4 +74,4 @@ namespace ForcefulFi.WebApi
                     webBuilder.UseStartup<Startup>();
                 });
     }
-} // namespace ForcefulFi.WebApi
+} // namespace VengefulFi.WebApi

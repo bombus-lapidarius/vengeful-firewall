@@ -61,7 +61,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
-namespace ForcefulFi.WebApi
+namespace VengefulFi.WebApi
 {
     public class Startup // the usual C# / Java boilerplate code wrapper
     {
@@ -100,4 +100,4 @@ namespace ForcefulFi.WebApi
             });
         }
     }
-} // namespace ForcefulFi.WebApi
+} // namespace VengefulFi.WebApi

@@ -12,7 +12,7 @@ stages:
 build Encryption for linux-x64:
   stage: build
   script:
-    - dotnet build -r linux-x64 -c Release ./src/main/Encryption/ForcefulFi.Encryption.fsproj
+    - dotnet build -r linux-x64 -c Release ./src/main/Encryption/VengefulFi.Encryption.fsproj
   artifacts:
     paths:
       - src/main/Encryption/bin/Release/
@@ -21,7 +21,7 @@ build Encryption for linux-x64:
 build Encryption for win10-x64:
   stage: build
   script:
-    - dotnet build -r win10-x64 -c Release ./src/main/Encryption/ForcefulFi.Encryption.fsproj
+    - dotnet build -r win10-x64 -c Release ./src/main/Encryption/VengefulFi.Encryption.fsproj
   artifacts:
     paths:
       - src/main/Encryption/bin/Release/
@@ -29,7 +29,7 @@ build Encryption for win10-x64:
 build WebApi for linux-x64:
   stage: build
   script:
-    - dotnet build -r linux-x64 -c Release ./src/main/WebApi/ForcefulFi.WebApi.csproj
+    - dotnet build -r linux-x64 -c Release ./src/main/WebApi/VengefulFi.WebApi.csproj
   artifacts:
     paths:
       - src/main/WebApi/bin/Release/
@@ -38,7 +38,7 @@ build WebApi for linux-x64:
 build WebApi for win10-x64:
   stage: build
   script:
-    - dotnet build -r win10-x64 -c Release ./src/main/WebApi/ForcefulFi.WebApi.csproj
+    - dotnet build -r win10-x64 -c Release ./src/main/WebApi/VengefulFi.WebApi.csproj
   artifacts:
     paths:
       - src/main/WebApi/bin/Release/
@@ -50,7 +50,7 @@ publish WebApi for linux-x64:
   stage: publish
   # create a single executable native binary
   script:
-    - "dotnet publish -r linux-x64 -c Release /p:PublishSingleFile=true ./src/main/WebApi/ForcefulFi.WebApi.csproj"
+    - "dotnet publish -r linux-x64 -c Release /p:PublishSingleFile=true ./src/main/WebApi/VengefulFi.WebApi.csproj"
   dependencies:
     - "build WebApi for linux-x64"
   artifacts:
@@ -61,7 +61,7 @@ publish WebApi for win10-x64:
   stage: publish
   # create a single executable native binary
   script:
-    - "dotnet publish -r win10-x64 -c Release /p:PublishSingleFile=true ./src/main/WebApi/ForcefulFi.WebApi.csproj"
+    - "dotnet publish -r win10-x64 -c Release /p:PublishSingleFile=true ./src/main/WebApi/VengefulFi.WebApi.csproj"
   dependencies:
     - "build WebApi for win10-x64"
   artifacts:
@@ -74,11 +74,11 @@ publish WebApi for win10-x64:
 # test WebApi for linux-x64:
   # stage: test
   # script:
-    # - dotnet test -c Release ./src/test/WebApi.Tests/ForcefulFi.WebApi.Tests.csproj
+    # - dotnet test -c Release ./src/test/WebApi.Tests/VengefulFi.WebApi.Tests.csproj
 # test WebApi for win10-x64:
   # stage: test
   # script:
-    # - dotnet test -c Release ./src/test/WebApi.Tests/ForcefulFi.WebApi.Tests.csproj
+    # - dotnet test -c Release ./src/test/WebApi.Tests/VengefulFi.WebApi.Tests.csproj
 
 
 # run builds and tests in parallel for all components
