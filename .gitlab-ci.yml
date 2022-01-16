@@ -88,7 +88,7 @@ publish WebApi for win10-x64:
 test Encryption:
   stage: test
   script:
-    - dotnet test -c Release --collect:"XPlat Code Coverage" ./src/test/Encryption/VengefulFi.Encryption.Tests.fsproj
+    - dotnet test -c Release --collect:"XPlat Code Coverage" ./src/test/Encryption.Tests/VengefulFi.Encryption.Tests.fsproj
   artifacts:
     paths:
       - src/main/Encryption/bin/Release/
