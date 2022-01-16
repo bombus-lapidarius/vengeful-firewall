@@ -17,7 +17,6 @@ build Encryption for linux-x64:
     paths:
       - src/main/Encryption/bin/Release/
       - src/main/Encryption/obj/Release/
-# run builds and tests in parallel for all components
 build Encryption for win10-x64:
   stage: build
   script:
@@ -26,6 +25,22 @@ build Encryption for win10-x64:
     paths:
       - src/main/Encryption/bin/Release/
       - src/main/Encryption/obj/Release/
+build Ipld for linux-x64:
+  stage: build
+  script:
+    - dotnet build -r linux-x64 -c Release ./src/main/Ipld/VengefulFi.Ipld.fsproj
+  artifacts:
+    paths:
+      - src/main/Ipld/bin/Release/
+      - src/main/Ipld/obj/Release/
+build Ipld for win10-x64:
+  stage: build
+  script:
+    - dotnet build -r win10-x64 -c Release ./src/main/Ipld/VengefulFi.Ipld.fsproj
+  artifacts:
+    paths:
+      - src/main/Ipld/bin/Release/
+      - src/main/Ipld/obj/Release/
 build WebApi for linux-x64:
   stage: build
   script:
@@ -34,7 +49,6 @@ build WebApi for linux-x64:
     paths:
       - src/main/WebApi/bin/Release/
       - src/main/WebApi/obj/Release/
-# run builds and tests in parallel for all components
 build WebApi for win10-x64:
   stage: build
   script:
