@@ -4,7 +4,7 @@ image: mcr.microsoft.com/dotnet/sdk:5.0
 stages:
   - build
   - publish
-  # - test
+  - test
   # - deploy
 
 
@@ -85,14 +85,14 @@ publish WebApi for win10-x64:
 
 
 # run builds and tests in parallel for all components
-# test WebApi for linux-x64:
-  # stage: test
-  # script:
-    # - dotnet test -c Release ./src/test/WebApi.Tests/VengefulFi.WebApi.Tests.csproj
-# test WebApi for win10-x64:
-  # stage: test
-  # script:
-    # - dotnet test -c Release ./src/test/WebApi.Tests/VengefulFi.WebApi.Tests.csproj
+test Encryption:
+  stage: test
+  script:
+    - dotnet test -c Release --collect:"XPlat Code Coverage" ./src/test/Encryption/VengefulFi.Encryption.Tests.fsproj
+  artifacts:
+    paths:
+      - src/main/Encryption/bin/Release/
+      - src/main/Encryption/obj/Release/
 
 
 # run builds and tests in parallel for all components
