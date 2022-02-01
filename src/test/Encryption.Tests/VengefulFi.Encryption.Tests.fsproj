@@ -15,6 +15,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Include="Utils.fs" />
+    <Compile Include="TestMappings.fs" />
+    <Compile Include="TestDataList.fs" />
     <Compile Include="Block.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>

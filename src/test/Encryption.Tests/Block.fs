@@ -1,4 +1,4 @@
-module VengefulFi.Encryption.Tests
+module VengefulFi.Encryption.Tests.Block
 
 
 (* #############################################################################
@@ -60,8 +60,79 @@ SOFTWARE.
 
 open NUnit.Framework
 
+
+open VengefulFi.Encryption.Types
+open VengefulFi.Encryption.Block
+
+
+open VengefulFi.Encryption.Tests.Utils
+
+
+open VengefulFi.Encryption.Tests.TestMappings
+open VengefulFi.Encryption.Tests.TestDataList
+
+
+// extract
+let keys = List.map (fun x -> x.AesKey) testMappings
+// extract
+let cids =
+    List.map (fun x -> x.Mappings) testMappings
+    // create one big list of cid mappings
+    |> List.concat
+    // remove potential duplicates in the resulting list
+    |> List.map (fun x -> x.PlainCid)
+    |> List.distinctBy plainCidtoBase64
+
+
 [<SetUp>] // nothing here yet
 let Setup () = ()
 
+
 [<Test>]
-let Test1 () = Assert.Pass()
+let DecryptBlockTest
+    ([<ValueSource(nameof(keys))>] aesKey: byte[])
+    ([<ValueSource(nameof(cids))>] plainContentId: PlainContentId): unit =
+
+    // look up the corresponding encrypted cid
+    let encryptedCid = fetchCidMock testMappings AesCbc aesKey plainContentId
+
+    // our starting points
+    let plainBlock = getPlainMock testDataList plainContentId
+    let cryptBlock = getRawMock testDataList encryptedCid
+    
+    // perform the actual decryption
+    let decryptedBlock = decryptBlock AesCbc aesKey cryptBlock
+
+    // deconstruct
+    let (PlainContent (GenericContent plainBlockBare)) = plainBlock
+    let (PlainContent (GenericContent decryptedBlockBare)) = decryptedBlock
+
+    // compare
+    Assert.AreEqual(
+        (fromStream plainBlockBare), (fromStream decryptedBlockBare)
+    )
+
+
+[<Test>]
+let EncryptBlockTest
+    ([<ValueSource(nameof(keys))>] aesKey: byte[])
+    ([<ValueSource(nameof(cids))>] plainContentId: PlainContentId): unit =
+
+    // look up the corresponding encrypted cid
+    let encryptedCid = fetchCidMock testMappings AesCbc aesKey plainContentId
+
+    // our starting points
+    let plainBlock = getPlainMock testDataList plainContentId
+    let cryptBlock = getRawMock testDataList encryptedCid
+    
+    // perform the actual encryption
+    let encryptedBlock = encryptBlock AesCbc aesKey plainBlock
+    
+    // deconstruct
+    let (EncryptedContent (GenericContent cryptBlockBare)) = cryptBlock
+    let (EncryptedContent (GenericContent encryptedBlockBare)) = encryptedBlock
+
+    // compare
+    Assert.AreEqual(
+        (fromStream cryptBlockBare), (fromStream encryptedBlockBare)
+    )
