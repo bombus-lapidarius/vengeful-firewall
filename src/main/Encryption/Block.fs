@@ -89,17 +89,26 @@ type GetRawType = EncryptedContentId -> EncryptedContent
 type PutRawType = EncryptedContent -> EncryptedContentId
 
 
+exception IllegalKeySizeException of Cipher * byte[]
+
+
 let private createCryptoEngine (cipher: Cipher) (key: byte[]): Aes = // TODO: generalise
     match cipher with
     | Types.Cipher.AesCbc ->
+        // create the crypto engine that this function will return
         let aes = Aes.Create()
-        // TODO: verify that the key size is valid for the chosen cipher
+        // verify that the key size is valid for the chosen cipher
+        match key.Length * 8 |> aes.ValidKeySize with
+        | true -> ()
+        | false -> raise (IllegalKeySizeException (cipher, key))
+        // set the key
         aes.Key <- key
-        // TODO: set block size?
-        aes.IV <- key // TODO: essiv for IV generation
+        // ...
         aes.Mode <- CipherMode.CBC
-        // TODO: set feedback size?
-        // TODO: set padding?
+        aes.IV <- Array.sub key 0 16 // TODO: use essiv here
+        // ...
+        aes.Padding <- PaddingMode.PKCS7 // set this explicitly just in case
+        // TODO: set block and feedback sizes?
         aes // cbc
 
 
