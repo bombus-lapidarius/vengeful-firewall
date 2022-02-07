@@ -90,9 +90,51 @@ type PutRawType = EncryptedContent -> EncryptedContentId
 
 
 exception IllegalKeySizeException of Cipher * byte[]
+exception IllegalIVectorSizeException of Cipher * byte[]
 
 
-let private createCryptoEngine (cipher: Cipher) (key: byte[]): Aes = // TODO: generalise
+let private essiv cipher (key: byte array) (blockId: uint64): byte array =
+    // linux dmcrypt ensures that the block number is written to memory as
+    // a little endian 64 bits integer before it is used for essiv
+    let toLittleEndian (x: byte array) =
+        match System.BitConverter.IsLittleEndian with
+        | true -> x
+        | false -> Array.rev x // TODO: what about mixed endian systems?
+    match cipher with
+    | Types.Cipher.AesCbc ->
+        // create the crypto engine that we'll use for encrypting the block id
+        use ecb = Aes.Create()
+        // only support sha256 for essiv for now
+        use sha256 = SHA256.Create()
+        // verify that the key size is valid for the chosen cipher
+        match sha256.ComputeHash(key).Length * 8 |> ecb.ValidKeySize with
+        | true -> ()
+        | false -> raise (IllegalKeySizeException (cipher, key))
+        // set the key
+        ecb.Key <- sha256.ComputeHash(key)
+        // ...
+        ecb.Mode <- CipherMode.ECB
+        // TODO: set a dummy iv for ecb just in case?
+        // ...
+        ecb.Padding <- PaddingMode.None // NOTE: this may be incorrect
+        // TODO: set block and feedback sizes?
+        // ...
+        let blockIdLittleEndian = System.BitConverter.GetBytes(blockId) |> toLittleEndian
+        let filler x =
+            if x < blockIdLittleEndian.Length // clone blockIdLittleEndian first
+                then blockIdLittleEndian.[x]
+                else 0uy // fill the remainder with zeroes
+        let blockIdPadded = Array.init 16 filler
+        use ecbEncryptor = ecb.CreateEncryptor()
+        // NOTE: this may be incorrect
+        let out = ecbEncryptor.TransformFinalBlock(blockIdPadded, 0, 16)
+        // make sure that we got an iv of valid size for the chosen cipher
+        match out.Length * 8 with
+        | 128 -> out
+        | _ -> raise (IllegalIVectorSizeException (cipher, out))
+
+
+let private createCryptoEngine (cipher: Cipher) (key: byte[]) (blockId: uint64): Aes = // TODO: generalise
     match cipher with
     | Types.Cipher.AesCbc ->
         // create the crypto engine that this function will return
@@ -105,7 +147,7 @@ let private createCryptoEngine (cipher: Cipher) (key: byte[]): Aes = // TODO: ge
         aes.Key <- key
         // ...
         aes.Mode <- CipherMode.CBC
-        aes.IV <- Array.sub key 0 16 // TODO: use essiv here
+        aes.IV <- essiv cipher key blockId
         // ...
         aes.Padding <- PaddingMode.PKCS7 // set this explicitly just in case
         // TODO: set block and feedback sizes?
@@ -115,7 +157,7 @@ let private createCryptoEngine (cipher: Cipher) (key: byte[]): Aes = // TODO: ge
 let decryptBlock (cipher: Cipher) (key: byte[]) (input: EncryptedContent):
     PlainContent =
 
-    use aes = createCryptoEngine cipher key // TODO: dangling ref?
+    use aes = createCryptoEngine cipher key 0x00uL // TODO: dangling ref?
     let cbcDecryptor = aes.CreateDecryptor()
     let (Types.EncryptedContent (Types.GenericContent inputStream)) = input
     let output = new CryptoStream(inputStream, cbcDecryptor, CryptoStreamMode.Read, false) // TODO: does this return a usable stream object?
@@ -125,7 +167,7 @@ let decryptBlock (cipher: Cipher) (key: byte[]) (input: EncryptedContent):
 let encryptBlock (cipher: Cipher) (key: byte[]) (input: PlainContent):
     EncryptedContent =
 
-    use aes = createCryptoEngine cipher key // TODO: dangling ref?
+    use aes = createCryptoEngine cipher key 0x00uL // TODO: dangling ref?
     let cbcEncryptor = aes.CreateEncryptor()
     let (Types.PlainContent (Types.GenericContent inputStream)) = input
     let output = new CryptoStream(inputStream, cbcEncryptor, CryptoStreamMode.Read, false) // TODO: does this return a usable stream object?
