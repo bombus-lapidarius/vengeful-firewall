@@ -80,8 +80,10 @@ type CalculateCidType = GenericContent -> GenericContentId
 
 
 // parameterise based on these function types to enable efficient unit testing
-type FetchCidType = Cipher -> byte[] -> PlainContentId -> EncryptedContentId
-type StoreCidType = Cipher -> byte[] -> PlainContentId -> EncryptedContentId -> unit
+type FetchCidType = Cipher -> byte [] -> PlainContentId -> EncryptedContentId
+
+type StoreCidType =
+    Cipher -> byte [] -> PlainContentId -> EncryptedContentId -> unit
 
 
 // parameterise based on these function types to enable efficient unit testing
@@ -89,17 +91,18 @@ type GetRawType = EncryptedContentId -> EncryptedContent
 type PutRawType = EncryptedContent -> EncryptedContentId
 
 
-exception IllegalKeySizeException of Cipher * byte[]
-exception IllegalIVectorSizeException of Cipher * byte[]
+exception IllegalKeySizeException of Cipher * byte []
+exception IllegalIVectorSizeException of Cipher * byte []
 
 
-let private essiv cipher (key: byte array) (blockId: uint64): byte array =
+let private essiv cipher (key: byte array) (blockId: uint64) : byte array =
     // linux dmcrypt ensures that the block number is written to memory as
     // a little endian 64 bits integer before it is used for essiv
     let toLittleEndian (x: byte array) =
         match System.BitConverter.IsLittleEndian with
         | true -> x
         | false -> Array.rev x // TODO: what about mixed endian systems?
+
     match cipher with
     | Types.Cipher.AesCbc ->
         // create the crypto engine that we'll use for encrypting the block id
@@ -107,9 +110,11 @@ let private essiv cipher (key: byte array) (blockId: uint64): byte array =
         // only support sha256 for essiv for now
         use sha256 = SHA256.Create()
         // verify that the key size is valid for the chosen cipher
-        match sha256.ComputeHash(key).Length * 8 |> ecb.ValidKeySize with
+        match sha256.ComputeHash(key).Length * 8
+              |> ecb.ValidKeySize
+            with
         | true -> ()
-        | false -> raise (IllegalKeySizeException (cipher, key))
+        | false -> raise (IllegalKeySizeException(cipher, key))
         // set the key
         ecb.Key <- sha256.ComputeHash(key)
         // ...
@@ -119,11 +124,17 @@ let private essiv cipher (key: byte array) (blockId: uint64): byte array =
         ecb.Padding <- PaddingMode.None // NOTE: this may be incorrect
         // TODO: set block and feedback sizes?
         // ...
-        let blockIdLittleEndian = System.BitConverter.GetBytes(blockId) |> toLittleEndian
+        let blockIdLittleEndian =
+            System.BitConverter.GetBytes(blockId)
+            |> toLittleEndian
+
         let filler x =
             if x < blockIdLittleEndian.Length // clone blockIdLittleEndian first
-                then blockIdLittleEndian.[x]
-                else 0uy // fill the remainder with zeroes
+            then
+                blockIdLittleEndian.[x]
+            else
+                0uy // fill the remainder with zeroes
+
         let blockIdPadded = Array.init 16 filler
         use ecbEncryptor = ecb.CreateEncryptor()
         // NOTE: this may be incorrect
@@ -131,10 +142,14 @@ let private essiv cipher (key: byte array) (blockId: uint64): byte array =
         // make sure that we got an iv of valid size for the chosen cipher
         match out.Length * 8 with
         | 128 -> out
-        | _ -> raise (IllegalIVectorSizeException (cipher, out))
+        | _ -> raise (IllegalIVectorSizeException(cipher, out))
 
 
-let private createCryptoEngine (cipher: Cipher) (key: byte[]) (blockId: uint64): Aes = // TODO: generalise
+let private createCryptoEngine
+    (cipher: Cipher)
+    (key: byte [])
+    (blockId: uint64)
+    : Aes =
     match cipher with
     | Types.Cipher.AesCbc ->
         // create the crypto engine that this function will return
@@ -142,7 +157,7 @@ let private createCryptoEngine (cipher: Cipher) (key: byte[]) (blockId: uint64):
         // verify that the key size is valid for the chosen cipher
         match key.Length * 8 |> aes.ValidKeySize with
         | true -> ()
-        | false -> raise (IllegalKeySizeException (cipher, key))
+        | false -> raise (IllegalKeySizeException(cipher, key))
         // set the key
         aes.Key <- key
         // ...
@@ -154,29 +169,56 @@ let private createCryptoEngine (cipher: Cipher) (key: byte[]) (blockId: uint64):
         aes // cbc
 
 
-let decryptBlock (cipher: Cipher) (key: byte[]) (input: EncryptedContent):
-    PlainContent =
+let decryptBlock
+    (cipher: Cipher)
+    (key: byte [])
+    (input: EncryptedContent)
+    : PlainContent =
 
     use aes = createCryptoEngine cipher key 0x00uL // TODO: dangling ref?
     let cbcDecryptor = aes.CreateDecryptor()
     let (Types.EncryptedContent (Types.GenericContent inputStream)) = input
-    let output = new CryptoStream(inputStream, cbcDecryptor, CryptoStreamMode.Read, false) // TODO: does this return a usable stream object?
-    Types.PlainContent (Types.GenericContent output)
+
+    let output =
+        new CryptoStream(
+            inputStream,
+            cbcDecryptor,
+            CryptoStreamMode.Read,
+            false
+        ) // TODO: does this return a usable stream object?
+
+    Types.PlainContent(Types.GenericContent output)
 
 
-let encryptBlock (cipher: Cipher) (key: byte[]) (input: PlainContent):
-    EncryptedContent =
+let encryptBlock
+    (cipher: Cipher)
+    (key: byte [])
+    (input: PlainContent)
+    : EncryptedContent =
 
     use aes = createCryptoEngine cipher key 0x00uL // TODO: dangling ref?
     let cbcEncryptor = aes.CreateEncryptor()
     let (Types.PlainContent (Types.GenericContent inputStream)) = input
-    let output = new CryptoStream(inputStream, cbcEncryptor, CryptoStreamMode.Read, false) // TODO: does this return a usable stream object?
-    Types.EncryptedContent (Types.GenericContent output)
+
+    let output =
+        new CryptoStream(
+            inputStream,
+            cbcEncryptor,
+            CryptoStreamMode.Read,
+            false
+        ) // TODO: does this return a usable stream object?
+
+    Types.EncryptedContent(Types.GenericContent output)
 
 
-let decryptGet (getRaw: GetRawType) (fetchCid: FetchCidType)
-    (cache: Cache.PlainDataCache) (cipher: Cipher) (key: byte[])
-    (plainCid: PlainContentId): PlainContent =
+let decryptGet
+    (getRaw: GetRawType)
+    (fetchCid: FetchCidType)
+    (cache: Cache.PlainDataCache)
+    (cipher: Cipher)
+    (key: byte [])
+    (plainCid: PlainContentId)
+    : PlainContent =
 
     match Cache.getFromCache cache plainCid with // PlainContent
     | None -> // we need to fetch the data from IPFS
@@ -184,20 +226,27 @@ let decryptGet (getRaw: GetRawType) (fetchCid: FetchCidType)
         |> getRaw // returns EncryptedContent
         // TODO: hash here to verify that the encrypted content returned matches the fetched cid?
         |> (decryptBlock cipher key) // returns PlainContent
-    | Some(result) -> result
+    | Some (result) -> result
 
 
-let encryptPut (putRaw: PutRawType) (storeCid: StoreCidType)
+let encryptPut
+    (putRaw: PutRawType)
+    (storeCid: StoreCidType)
     (calculateCid: CalculateCidType) // TODO: asymmetry OK here?
-    (cache: Cache.PlainDataCache) (cipher: Cipher) (key: byte[])
-    (plainContent: PlainContent): PlainContentId =
+    (cache: Cache.PlainDataCache)
+    (cipher: Cipher)
+    (key: byte [])
+    (plainContent: PlainContent)
+    : PlainContentId =
 
     // we can't pass on plaintext to our IPFS node
     // instead, we have to calculate the plaintext cid ourselves
     let (Types.PlainContent input) = plainContent // deconstruct
-    let plainCid = Types.PlainContentId (calculateCid input)
+    let plainCid = Types.PlainContentId(calculateCid input)
     Cache.putIntoCache cache plainCid plainContent // returns unit
+
     encryptBlock cipher key plainContent // returns EncryptedContent
     |> putRaw // returns EncryptedContentId
     |> (storeCid cipher key) plainCid // returns unit
+
     plainCid // TODO: hash here to verify the cid returned by the underlying IPFS node?

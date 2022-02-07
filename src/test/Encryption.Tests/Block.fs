@@ -90,8 +90,9 @@ let Setup () = ()
 
 [<Test>]
 let DecryptBlockTest
-    ([<ValueSource(nameof(keys))>] aesKey: byte[])
-    ([<ValueSource(nameof(cids))>] plainContentId: PlainContentId): unit =
+    ([<ValueSource(nameof (keys))>] aesKey: byte [])
+    ([<ValueSource(nameof (cids))>] plainContentId: PlainContentId)
+    : unit =
 
     // look up the corresponding encrypted cid
     let encryptedCid = fetchCidMock testMappings AesCbc aesKey plainContentId
@@ -99,7 +100,7 @@ let DecryptBlockTest
     // our starting points
     let plainBlock = getPlainMock testDataList plainContentId
     let cryptBlock = getRawMock testDataList encryptedCid
-    
+
     // perform the actual decryption
     let decryptedBlock = decryptBlock AesCbc aesKey cryptBlock
 
@@ -108,15 +109,14 @@ let DecryptBlockTest
     let (PlainContent (GenericContent decryptedBlockBare)) = decryptedBlock
 
     // compare
-    Assert.AreEqual(
-        (fromStream plainBlockBare), (fromStream decryptedBlockBare)
-    )
+    Assert.AreEqual((fromStream plainBlockBare), (fromStream decryptedBlockBare))
 
 
 [<Test>]
 let EncryptBlockTest
-    ([<ValueSource(nameof(keys))>] aesKey: byte[])
-    ([<ValueSource(nameof(cids))>] plainContentId: PlainContentId): unit =
+    ([<ValueSource(nameof (keys))>] aesKey: byte [])
+    ([<ValueSource(nameof (cids))>] plainContentId: PlainContentId)
+    : unit =
 
     // look up the corresponding encrypted cid
     let encryptedCid = fetchCidMock testMappings AesCbc aesKey plainContentId
@@ -124,15 +124,13 @@ let EncryptBlockTest
     // our starting points
     let plainBlock = getPlainMock testDataList plainContentId
     let cryptBlock = getRawMock testDataList encryptedCid
-    
+
     // perform the actual encryption
     let encryptedBlock = encryptBlock AesCbc aesKey plainBlock
-    
+
     // deconstruct
     let (EncryptedContent (GenericContent cryptBlockBare)) = cryptBlock
     let (EncryptedContent (GenericContent encryptedBlockBare)) = encryptedBlock
 
     // compare
-    Assert.AreEqual(
-        (fromStream cryptBlockBare), (fromStream encryptedBlockBare)
-    )
+    Assert.AreEqual((fromStream cryptBlockBare), (fromStream encryptedBlockBare))

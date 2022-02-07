@@ -64,7 +64,7 @@ type CidVersion = Block.CidVersion
 
 type HashName = Block.HashName
 type HashSize = Block.HashSize
-type Digest = Block.Digest // the raw hash as byte array
+type Digest = Block.Digest
 
 
 type RawContentId = Block.RawContentId
@@ -74,17 +74,15 @@ type RawContent = Block.RawContent
 // TODO: move codecs to their own modules and only reference them here
 
 
-type PbLink = {
-    Hash: HashName * HashSize * Digest
-    Name: string // TODO: ensure utf-8
-    TargetSize: uint64
-}
+type PbLink =
+    { Hash: HashName * HashSize * Digest
+      Name: string // TODO: ensure utf-8
+      TargetSize: uint64 }
 
 
-type PbNode = {
-    Links: (HashName * HashSize * Digest) list // TODO: raw hash only?
-    Data: byte[]
-}
+type PbNode =
+    { Links: (HashName * HashSize * Digest) list // TODO: raw hash only?
+      Data: byte [] }
 
 
 // TODO: move codecs to their own modules and only reference them here
@@ -99,13 +97,19 @@ let private newDagNodePb hashName hashSize cidVersion c = c
 exception UnsupportedCodecException of CidVersion * Multicodec
 
 
-let newDagNode (hashName: HashName) (hashSize: HashSize)
-    (cidVersion: CidVersion) (encoding: Multicodec) (data: byte[]) =
+// TODO: use abstract DagNode type and just encode / decode into / from CBOR, JSON and ProtoBuf
+let newDagNode
+    (hashName: HashName)
+    (hashSize: HashSize)
+    (cidVersion: CidVersion)
+    (encoding: Multicodec)
+    (data: byte [])
+    =
 
     // TODO: verify compatibility of cid versions, codecs and hashes
     // TODO: include the list of links
     match encoding with
     | Multicodec.DagCbor -> newDagNodeCbor hashName hashSize cidVersion data
     | Multicodec.DagJson -> newDagNodeJson hashName hashSize cidVersion data
-    | Multicodec.DagPb   -> newDagNodePb   hashName hashSize cidVersion data
-    | _ -> raise (UnsupportedCodecException (cidVersion, encoding) )
+    | Multicodec.DagPb -> newDagNodePb hashName hashSize cidVersion data
+    | _ -> raise (UnsupportedCodecException(cidVersion, encoding))

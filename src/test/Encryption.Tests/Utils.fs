@@ -65,20 +65,16 @@ open VengefulFi.Encryption.Types
 open VengefulFi.Encryption.Block
 
 
-type TestData = {
-    Hash: byte[]
-    Data: byte[]
-}
+type TestData = { Hash: byte []; Data: byte [] }
 
 
-type CidMapping = {
-    PlainCid: PlainContentId
-    EncryptedCid: EncryptedContentId
-}
-type KeyMapping = {
-    AesKey: byte[]
-    Mappings: list<CidMapping>
-}
+type CidMapping =
+    { PlainCid: PlainContentId
+      EncryptedCid: EncryptedContentId }
+
+type KeyMapping =
+    { AesKey: byte []
+      Mappings: list<CidMapping> }
 
 
 exception Base64ConversionFailedException of string
@@ -89,12 +85,12 @@ exception UnknownContentException
 
 
 // move data from generic dotnet stream objects to byte arrays
-let fromStream (rawStream: Stream): byte[] =
+let fromStream (rawStream: Stream) : byte [] =
     use ms = new MemoryStream(256)
     rawStream.CopyTo(ms) // this should adjust the MemoryStream size as needed
     ms.ToArray()
 // move data from byte arrays to generic dotnet stream objects
-let toStream (rb: byte[]): Stream = new MemoryStream(rb) :> Stream // upcast
+let toStream (rb: byte []) : Stream = new MemoryStream(rb) :> Stream // upcast
 
 
 // compare two byte arrays by folding them using a function that tests their
@@ -102,9 +98,13 @@ let toStream (rb: byte[]): Stream = new MemoryStream(rb) :> Stream // upcast
 let compareByteArray (x: byte array) (y: byte array) =
     let fd s a b =
         if a = b // bytes at identical index positions must be equal
-            then s
-            else s + 1
-    try match Array.fold2 fd 0 x y with
+        then
+            s
+        else
+            s + 1
+
+    try
+        match Array.fold2 fd 0 x y with
         | 0 -> true
         | _ -> false
     with
@@ -113,12 +113,12 @@ let compareByteArray (x: byte array) (y: byte array) =
 
 
 // compare two cids by extracting and comparing their underlying byte arrays
-let comparePlainCids x y: bool =
+let comparePlainCids x y : bool =
     let (PlainContentId (GenericContentId a)) = x
     let (PlainContentId (GenericContentId b)) = y
     compareByteArray a b
 // compare two cids by extracting and comparing their underlying byte arrays
-let compareEncryptedCids x y: bool =
+let compareEncryptedCids x y : bool =
     let (EncryptedContentId (GenericContentId a)) = x
     let (EncryptedContentId (GenericContentId b)) = y
     compareByteArray a b
@@ -126,12 +126,13 @@ let compareEncryptedCids x y: bool =
 
 // encoding conversions (base64)
 let fromBase64 s =
-    try System.Convert.FromBase64String(s)
+    try
+        System.Convert.FromBase64String(s)
     with
     // the string may contain illegal characters, pass on the offending string
     | _ -> raise (Base64ConversionFailedException s)
-let toBase64 r =
-    System.Convert.ToBase64String(r)
+
+let toBase64 r = System.Convert.ToBase64String(r)
 
 
 // cid encoding conversions (base64)
@@ -139,7 +140,9 @@ let plainCidfromBase64 s =
     fromBase64 s |> GenericContentId |> PlainContentId
 // cid encoding conversions (base64)
 let encryptedCidfromBase64 s =
-    fromBase64 s |> GenericContentId |> EncryptedContentId
+    fromBase64 s
+    |> GenericContentId
+    |> EncryptedContentId
 // cid encoding conversions (base64)
 let plainCidtoBase64 i =
     let (PlainContentId (GenericContentId r)) = i
@@ -154,7 +157,8 @@ let fetchCidMock (l: list<KeyMapping>) cipher key (plainCid: PlainContentId) =
     let f = compareByteArray
     let g = comparePlainCids
     // search our test mappings for the correct content id
-    try let a = List.find (fun x -> f x.AesKey key) l
+    try
+        let a = List.find (fun x -> f x.AesKey key) l
         let b = List.find (fun y -> g y.PlainCid plainCid) a.Mappings
         b.EncryptedCid
     with
@@ -165,7 +169,7 @@ let fetchCidMock (l: list<KeyMapping>) cipher key (plainCid: PlainContentId) =
 let storeCidMock (l: list<KeyMapping>) cipher key plainCid encryptedCid = ()
 
 
-let putRawMock s c: EncryptedContentId =
+let putRawMock s c : EncryptedContentId =
     // deconstruct
     let (EncryptedContent (GenericContent stream)) = c
     // retrieve the correct hash for the data provided
@@ -173,26 +177,32 @@ let putRawMock s c: EncryptedContentId =
         match td with
         | head :: tail ->
             // check whether the current head is the list item we need
-            match stream |> fromStream |> (compareByteArray head.Data) with
+            match stream
+                  |> fromStream
+                  |> (compareByteArray head.Data)
+                with
             | true -> head.Hash // put op, return hash
             | false -> deepDive tail
         | [] -> raise UnknownContentException
     // construct
-    deepDive s |> GenericContentId |> EncryptedContentId
+    deepDive s
+    |> GenericContentId
+    |> EncryptedContentId
 
 
 // for testing purposes, reuse existing code
-let putGenericMock s c: GenericContentId =
+let putGenericMock s c : GenericContentId =
     // deconstruct
     let (EncryptedContentId i) = putRawMock s (EncryptedContent c)
     i
-let putPlainMock s c: PlainContentId =
+
+let putPlainMock s c : PlainContentId =
     // deconstruct
     let (PlainContent g) = c
     putGenericMock s g |> PlainContentId
 
 
-let getRawMock s i: EncryptedContent =
+let getRawMock s i : EncryptedContent =
     // deconstruct
     let (EncryptedContentId (GenericContentId binaryId)) = i
     // retrieve the correct data for the hash provided
@@ -205,15 +215,19 @@ let getRawMock s i: EncryptedContent =
             | false -> deepDive tail
         | [] -> raise UnknownContentException
     // construct
-    deepDive s |> toStream |> GenericContent |> EncryptedContent
+    deepDive s
+    |> toStream
+    |> GenericContent
+    |> EncryptedContent
 
 
 // for testing purposes, reuse existing code
-let getGenericMock s i: GenericContent =
+let getGenericMock s i : GenericContent =
     // deconstruct
     let (EncryptedContent c) = getRawMock s (EncryptedContentId i)
     c
-let getPlainMock s i: PlainContent =
+
+let getPlainMock s i : PlainContent =
     // deconstruct
     let (PlainContentId g) = i
     getGenericMock s g |> PlainContent

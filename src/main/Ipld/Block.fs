@@ -62,31 +62,34 @@ open System.IO
 open System.Security.Cryptography
 
 
-type Multicodec = // ipfs only
-    | DagCbor=0x71
-    | DagJson=0x0129
-    | DagPb=0x70
-type CidVersion = // TODO: enum?
+type Multicodec =
+    | DagCbor = 0x71
+    | DagJson = 0x0129
+    | DagPb = 0x70
+
+type CidVersion =
     | Cid0
     | Cid1
 
 
-type HashName = // only offer sha2 for now // TODO: identity
-    | Sha224=0x1013
-    | Sha256=0x12
-    | Sha384=0x20
-    | Sha512=0x13
+type HashName =
+    | Sha224 = 0x1013
+    | Sha256 = 0x12
+    | Sha384 = 0x20
+    | Sha512 = 0x13
+
 type HashSize = HashSize of uint32
-type Digest = Digest of byte[] // the raw hash as byte array
+type Digest = Digest of byte [] // the raw hash as byte array
 
 
-type RawContentId = { // TODO: struct?
-    CidVersion: CidVersion
-    Multicodec: Multicodec
-    HashName: HashName
-    HashSize: HashSize
-    Digest: Digest // the raw hash as byte array
-}
+type RawContentId =
+    { // TODO: struct?
+      CidVersion: CidVersion
+      Multicodec: Multicodec
+      HashName: HashName
+      HashSize: HashSize
+      Digest: Digest } // the raw hash as byte array
+
 type RawContent = RawContent of Stream
 
 
@@ -102,13 +105,13 @@ let verifyHashSize (name: HashName) (size: HashSize) =
     | (HashName.Sha384, HashSize 384u) -> true
     | (HashName.Sha512, HashSize 512u) -> true
     // this should be tried last
-    | _ -> raise (HashSizeMismatchException (name, size) )
+    | _ -> raise (HashSizeMismatchException(name, size))
 
 
-let private hashData (name: HashName) (size: HashSize)
-    (data: RawContent): Digest =
+let private hashData (name: HashName) (size: HashSize) (data: RawContent) : Digest =
 
     let (RawContent stream) = data
+
     match verifyHashSize name size with
     | true -> // select the correct algorithm to hash the data
         match name with
@@ -121,20 +124,25 @@ let private hashData (name: HashName) (size: HashSize)
         | HashName.Sha512 ->
             use hasher = SHA512.Create()
             hasher.ComputeHash(stream) |> Digest // TODO: reset cursor position?
-        | _ -> raise (UnsupportedHashAlgorithmException (name, size) )
+        | _ -> raise (UnsupportedHashAlgorithmException(name, size))
     // this should be tried last
-    | _ -> raise (HashSizeMismatchException (name, size) )
+    | _ -> raise (HashSizeMismatchException(name, size))
 
 
-let calculateCid (hashName: HashName) (hashSize: HashSize)
-    (cidVersion: CidVersion) (multicodec: Multicodec) (data: RawContent) =
+let calculateCid
+    (hashName: HashName)
+    (hashSize: HashSize)
+    (cidVersion: CidVersion)
+    (multicodec: Multicodec)
+    (data: RawContent)
+    =
 
     // TODO: verify compatibility of cid versions, codecs and hashes
     let digest = hashData hashName hashSize data
-    {
-        CidVersion = cidVersion
-        Multicodec = multicodec
-        HashName = hashName
-        HashSize = hashSize
-        Digest = digest // the raw hash as byte array
+
+    { CidVersion = cidVersion
+      Multicodec = multicodec
+      HashName = hashName
+      HashSize = hashSize
+      Digest = digest // the raw hash as byte array
     }
