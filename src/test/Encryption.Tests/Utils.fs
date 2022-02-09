@@ -59,13 +59,11 @@ SOFTWARE.
 
 
 open System.IO
+open System.Security.Cryptography
 
 
 open VengefulFi.Encryption.Types
 open VengefulFi.Encryption.Block
-
-
-type TestData = { Hash: byte []; Data: byte [] }
 
 
 type CidMapping =
@@ -234,20 +232,10 @@ let storeCidMock (l: list<KeyMapping>) cipher key plainCid encryptedCid = ()
 let putRawMock s c : EncryptedContentId =
     // deconstruct
     let (EncryptedContent (GenericContent stream)) = c
-    // retrieve the correct hash for the data provided
-    let rec deepDive (td: TestData list) =
-        match td with
-        | head :: tail ->
-            // check whether the current head is the list item we need
-            match stream
-                  |> fromStream
-                  |> (compareByteArray head.Data)
-                with
-            | true -> head.Hash // put op, return hash
-            | false -> deepDive tail
-        | [] -> raise UnknownContentException
+    // generate the correct hash for the data provided
+    use hasher = SHA256.Create()
+    hasher.ComputeHash(stream)
     // construct
-    deepDive s
     |> GenericContentId
     |> EncryptedContentId
 
