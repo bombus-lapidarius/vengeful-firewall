@@ -58,6 +58,9 @@ SOFTWARE.
 ############################################################################# *)
 
 
+open System.IO
+
+
 open NUnit.Framework
 
 
@@ -122,7 +125,10 @@ let DecryptBlockTest
     let (PlainContent (GenericContent decryptedBlockBare)) = decryptedBlock
 
     // compare
-    Assert.AreEqual((fromStream plainBlockBare), (fromStream decryptedBlockBare))
+    Assert.AreEqual(
+        (fromStream plainBlockBare),
+        (fromStream decryptedBlockBare)
+    )
 
 
 [<Test>]
@@ -146,7 +152,10 @@ let EncryptBlockTest
     let (EncryptedContent (GenericContent encryptedBlockBare)) = encryptedBlock
 
     // compare
-    Assert.AreEqual((fromStream cryptBlockBare), (fromStream encryptedBlockBare))
+    Assert.AreEqual(
+        (fromStream cryptBlockBare),
+        (fromStream encryptedBlockBare)
+    )
 
 
 [<Test>]
@@ -171,8 +180,20 @@ let EncryptAndDecryptBlockTest
     let (PlainContent (GenericContent plainBlockBare)) = plainBlock
     let (PlainContent (GenericContent decryptedBlockBare)) = decryptedBlock
 
+    let plainBlockByte =
+        plainBlockBare.Seek(0L, SeekOrigin.Begin)
+        |> ignore
+
+        fromStream plainBlockBare
+
+    let decryptedBlockByte =
+        plainBlockBare.Seek(0L, SeekOrigin.Begin)
+        |> ignore
+
+        fromStream decryptedBlockBare
+
     // compare
-    Assert.AreEqual((fromStream plainBlockBare), (fromStream decryptedBlockBare))
+    Assert.AreEqual(plainBlockByte, decryptedBlockByte)
 
 
 [<Test>]
@@ -197,5 +218,17 @@ let DecryptAndEncryptBlockTest
     let (EncryptedContent (GenericContent cryptBlockBare)) = cryptBlock
     let (EncryptedContent (GenericContent encryptedBlockBare)) = encryptedBlock
 
+    let cryptBlockByte =
+        cryptBlockBare.Seek(0L, SeekOrigin.Begin)
+        |> ignore
+
+        fromStream cryptBlockBare
+
+    let encryptedBlockByte =
+        cryptBlockBare.Seek(0L, SeekOrigin.Begin)
+        |> ignore
+
+        fromStream encryptedBlockBare
+
     // compare
-    Assert.AreEqual((fromStream cryptBlockBare), (fromStream encryptedBlockBare))
+    Assert.AreEqual(cryptBlockByte, encryptedBlockByte)
