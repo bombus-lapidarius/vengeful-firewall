@@ -108,7 +108,11 @@ let verifyHashSize (name: HashName) (size: HashSize) =
     | _ -> raise (HashSizeMismatchException(name, size))
 
 
-let private hashData (name: HashName) (size: HashSize) (data: RawContent) : Digest =
+let private hashData
+    (name: HashName)
+    (size: HashSize)
+    (data: RawContent)
+    : Digest =
 
     let (RawContent stream) = data
 
