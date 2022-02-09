@@ -69,11 +69,24 @@ open VengefulFi.Encryption.Tests.Utils
 
 
 open VengefulFi.Encryption.Tests.TestMappings
-open VengefulFi.Encryption.Tests.TestDataList
 
 
 // extract
-let keys = List.map (fun x -> x.AesKey) testMappings
+let keys =
+    List.map
+        fromBase64
+        [ "DAE4Cc4GYhvuEBhA5Uh6Cg==" // aes128
+          "651/DGi4LoG4pqbCn7GiGw==" // aes128
+          "JOC0K+KGVYkrvCLQvRLnDQ==" // aes128
+          "MX3wIWZWNhFMMhiJtW/Odg==" // aes128
+          "Dg7xN5W5jYAoagswFJf9TjMgmaOOeWOn" // aes192
+          "PScsNjSTttbRE5zZ+mzUSJgYBFKtcxEF" // aes192
+          "7yZbBzxjyEKsdOJuVa6IDiiWpc2ABaZh" // aes192
+          "EpJojsP84iXg3lCpZEzcZJRf1fHdQQFL" // aes192
+          "vSVYuh2AjtrsFdB68Iw/S+BYmqOhxsBd/upZbpH79so="
+          "09R7vNdmrRb+eA54DWmHewTUuk268aZn3lZAu6kgGd4="
+          "a7Q2A3VPi0dN3Y2mpYBNqq8edZz5MIO1ddZirwU5MXA="
+          "44sGSiAdLGSn4IUWrFNg/DaoJr428/bFAq9+k61Wn9Y=" ]
 // extract
 let cids =
     List.map (fun x -> x.Mappings) testMappings
@@ -98,8 +111,8 @@ let DecryptBlockTest
     let encryptedCid = fetchCidMock testMappings AesCbc aesKey plainContentId
 
     // our starting points
-    let plainBlock = getPlainMock testDataList plainContentId
-    let cryptBlock = getRawMock testDataList encryptedCid
+    let plainBlock = getPlainMock plainContentId
+    let cryptBlock = getRawMock encryptedCid
 
     // perform the actual decryption
     let decryptedBlock = decryptBlock AesCbc aesKey cryptBlock
@@ -122,8 +135,8 @@ let EncryptBlockTest
     let encryptedCid = fetchCidMock testMappings AesCbc aesKey plainContentId
 
     // our starting points
-    let plainBlock = getPlainMock testDataList plainContentId
-    let cryptBlock = getRawMock testDataList encryptedCid
+    let plainBlock = getPlainMock plainContentId
+    let cryptBlock = getRawMock encryptedCid
 
     // perform the actual encryption
     let encryptedBlock = encryptBlock AesCbc aesKey plainBlock

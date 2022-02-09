@@ -17,13 +17,16 @@
   <ItemGroup>
     <Compile Include="Utils.fs" />
     <Compile Include="TestMappings.fs" />
-    <Compile Include="TestDataList.fs" />
     <Compile Include="Block.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\main\Encryption\VengefulFi.Encryption.fsproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="res/*.raw" />
   </ItemGroup>
 
 </Project>

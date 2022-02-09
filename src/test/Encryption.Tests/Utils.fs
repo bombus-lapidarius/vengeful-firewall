@@ -78,10 +78,15 @@ type KeyMapping =
 
 
 exception Base64ConversionFailedException of string
+exception HexStrConversionFailedException of string
 
 
 exception UnknownContentIdException
 exception UnknownContentException
+
+
+exception IllegalContentIdException
+exception IllegalContentException
 
 
 // move data from generic dotnet stream objects to byte arrays
@@ -135,6 +140,17 @@ let fromBase64 s =
 let toBase64 r = System.Convert.ToBase64String(r)
 
 
+// encoding conversions (hexstr)
+let fromHexStr (s: string) =
+    try
+        System.Convert.FromHexString(s)
+    with
+    // the string may contain illegal characters, pass on the offending string
+    | _ -> raise (HexStrConversionFailedException s)
+
+let toHexStr (r: byte array) = System.Convert.ToHexString(r)
+
+
 // cid encoding conversions (base64)
 let plainCidfromBase64 s =
     fromBase64 s |> GenericContentId |> PlainContentId
@@ -151,6 +167,52 @@ let plainCidtoBase64 i =
 let encryptedCidtoBase64 i =
     let (EncryptedContentId (GenericContentId r)) = i
     toBase64 r
+
+
+// cid encoding conversions (hexstr)
+let plainCidfromHexStr s =
+    fromHexStr s |> GenericContentId |> PlainContentId
+// cid encoding conversions (hexstr)
+let encryptedCidfromHexStr s =
+    fromHexStr s
+    |> GenericContentId
+    |> EncryptedContentId
+// cid encoding conversions (hexstr)
+let plainCidtoHexStr i =
+    let (PlainContentId (GenericContentId r)) = i
+    toHexStr r
+// cid encoding conversions (hexstr)
+let encryptedCidtoHexStr i =
+    let (EncryptedContentId (GenericContentId r)) = i
+    toHexStr r
+
+
+let private keyAndCidMappingFromString (s: string) =
+    let a = s.Split([| '.' |])
+
+    let aesKey = fromHexStr a.[0]
+    let plainCid = plainCidfromHexStr a.[1]
+    let encryptedCid = encryptedCidfromHexStr a.[2]
+
+    (aesKey,
+     { PlainCid = plainCid
+       EncryptedCid = encryptedCid })
+
+
+let getKeyMappingsFromStrings (l: list<string>) =
+    let rawMappingList = List.map keyAndCidMappingFromString l
+
+    let keys = List.map fst rawMappingList
+
+    let extractCidMappingsForKey l k =
+        List.filter (fun e -> compareByteArray (fst e) k) l
+        |> List.map snd
+
+    List.map
+        (fun x ->
+            { AesKey = x
+              Mappings = (extractCidMappingsForKey rawMappingList) x })
+        keys
 
 
 let fetchCidMock (l: list<KeyMapping>) cipher key (plainCid: PlainContentId) =
@@ -202,32 +264,46 @@ let putPlainMock s c : PlainContentId =
     putGenericMock s g |> PlainContentId
 
 
-let getRawMock s i : EncryptedContent =
-    // deconstruct
-    let (EncryptedContentId (GenericContentId binaryId)) = i
+let getRawMock i : EncryptedContent =
+    let assembly = System.Reflection.Assembly.GetExecutingAssembly()
     // retrieve the correct data for the hash provided
-    let rec deepDive (td: TestData list) =
-        match td with
-        | head :: tail ->
-            // check whether the current head is the list item we need
-            match binaryId |> (compareByteArray head.Hash) with
-            | true -> head.Data // get op, return data
-            | false -> deepDive tail
-        | [] -> raise UnknownContentException
+    try
+        let filename =
+            "VengefulFi.Encryption.Tests.res."
+            + (encryptedCidtoHexStr i).ToLower()
+            + ".raw"
+
+        let stream = assembly.GetManifestResourceStream(filename)
+
+        if stream = null then
+            NUnit.Framework.TestContext.WriteLine(
+                "embedded file "
+                + filename
+                + " could not be loaded"
+            )
+
+            raise UnknownContentException
+        else
+            stream
+    with
+    // embedded file not found
+    | :? FileNotFoundException -> raise UnknownContentException
+    | :? System.ArgumentException -> raise IllegalContentIdException
+    // found but malformed somehow
+    | :? FileLoadException -> raise IllegalContentException
+    | :? System.BadImageFormatException -> raise IllegalContentException
     // construct
-    deepDive s
-    |> toStream
     |> GenericContent
     |> EncryptedContent
 
 
 // for testing purposes, reuse existing code
-let getGenericMock s i : GenericContent =
+let getGenericMock i : GenericContent =
     // deconstruct
-    let (EncryptedContent c) = getRawMock s (EncryptedContentId i)
+    let (EncryptedContent c) = getRawMock (EncryptedContentId i)
     c
 
-let getPlainMock s i : PlainContent =
+let getPlainMock i : PlainContent =
     // deconstruct
     let (PlainContentId g) = i
-    getGenericMock s g |> PlainContent
+    getGenericMock g |> PlainContent
