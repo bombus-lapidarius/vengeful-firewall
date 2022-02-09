@@ -147,3 +147,55 @@ let EncryptBlockTest
 
     // compare
     Assert.AreEqual((fromStream cryptBlockBare), (fromStream encryptedBlockBare))
+
+
+[<Test>]
+let EncryptAndDecryptBlockTest
+    ([<ValueSource(nameof (keys))>] aesKey: byte [])
+    ([<ValueSource(nameof (cids))>] plainContentId: PlainContentId)
+    : unit =
+
+    // look up the corresponding encrypted cid
+    //let encryptedCid = fetchCidMock testMappings AesCbc aesKey plainContentId
+
+    // our starting points
+    let plainBlock = getPlainMock plainContentId
+    //let cryptBlock = getRawMock encryptedCid
+
+    let decryptedBlock =
+        plainBlock
+        |> encryptBlock AesCbc aesKey
+        |> decryptBlock AesCbc aesKey
+
+    // deconstruct
+    let (PlainContent (GenericContent plainBlockBare)) = plainBlock
+    let (PlainContent (GenericContent decryptedBlockBare)) = decryptedBlock
+
+    // compare
+    Assert.AreEqual((fromStream plainBlockBare), (fromStream decryptedBlockBare))
+
+
+[<Test>]
+let DecryptAndEncryptBlockTest
+    ([<ValueSource(nameof (keys))>] aesKey: byte [])
+    ([<ValueSource(nameof (cids))>] plainContentId: PlainContentId)
+    : unit =
+
+    // look up the corresponding encrypted cid
+    let encryptedCid = fetchCidMock testMappings AesCbc aesKey plainContentId
+
+    // our starting points
+    //let plainBlock = getPlainMock plainContentId
+    let cryptBlock = getRawMock encryptedCid
+
+    let encryptedBlock =
+        cryptBlock
+        |> decryptBlock AesCbc aesKey
+        |> encryptBlock AesCbc aesKey
+
+    // deconstruct
+    let (EncryptedContent (GenericContent cryptBlockBare)) = cryptBlock
+    let (EncryptedContent (GenericContent encryptedBlockBare)) = encryptedBlock
+
+    // compare
+    Assert.AreEqual((fromStream cryptBlockBare), (fromStream encryptedBlockBare))
