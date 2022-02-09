@@ -61,19 +61,7 @@ SOFTWARE.
 open System.Security.Cryptography
 
 
-type GenericContentId = Types.GenericContentId
-type GenericContent = Types.GenericContent
-
-
-type PlainContentId = Types.PlainContentId
-type PlainContent = Types.PlainContent
-
-
-type EncryptedContentId = Types.EncryptedContentId
-type EncryptedContent = Types.EncryptedContent
-
-
-type Cipher = Types.Cipher
+open VengefulFi.Encryption.Types
 
 
 type CalculateCidType = GenericContent -> GenericContentId

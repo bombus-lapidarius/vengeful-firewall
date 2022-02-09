@@ -58,17 +58,7 @@ SOFTWARE.
 ############################################################################# *)
 
 
-type Multicodec = Block.Multicodec
-type CidVersion = Block.CidVersion
-
-
-type HashName = Block.HashName
-type HashSize = Block.HashSize
-type Digest = Block.Digest
-
-
-type RawContentId = Block.RawContentId
-type RawContent = Block.RawContent
+open VengefulFi.Ipld.Block
 
 
 // TODO: move codecs to their own modules and only reference them here

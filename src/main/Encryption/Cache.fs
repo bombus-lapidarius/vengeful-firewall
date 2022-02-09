@@ -58,12 +58,7 @@ SOFTWARE.
 ############################################################################# *)
 
 
-type PlainContentId = Types.PlainContentId
-type PlainContent = Types.PlainContent
-
-
-type EncryptedContentId = Types.EncryptedContentId
-type EncryptedContent = Types.EncryptedContent
+open VengefulFi.Encryption.Types
 
 
 type PlainDataCache = int option // TODO
