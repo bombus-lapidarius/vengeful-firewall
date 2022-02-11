@@ -65,66 +65,73 @@ open VengefulFi.Encryption.Types
 
 
 exception IllegalKeySizeException of Cipher * byte []
-exception IllegalIVectorSizeException of Cipher * byte []
+exception IllegalBlockSizeException of Cipher * int
+exception IllegalIVectorSizeException of Cipher * int
 
 
-let private essiv cipher (key: byte array) (blockId: uint64) : byte array =
-    // linux dmcrypt ensures that the block number is written to memory as
-    // a little endian 64 bits integer before it is used for essiv
-    let toLittleEndian (x: byte array) =
-        match System.BitConverter.IsLittleEndian with
-        | true -> x
-        | false -> Array.rev x // TODO: what about mixed endian systems?
+let private toLittleEndian (xe: byte []) =
+    match System.BitConverter.IsLittleEndian with
+    | true -> xe
+    | false -> Array.rev xe // TODO: what about mixed endian systems?
 
-    match cipher with
-    | Types.Cipher.AesCbc ->
+let private fill (ba: byte []) n =
+    if n < ba.Length then
+        ba.[n] // copy bytes
+    else
+        0x00uy // fill bytes
+
+
+let private essiv cipher (key: byte array) (sectorId: uint64) : byte array =
+    use ecb =
         // create the crypto engine that we'll use for encrypting the block id
-        use ecb = Aes.Create()
-        // only support sha256 for essiv for now
-        use sha256 = SHA256.Create()
-        // verify that the key size is valid for the chosen cipher
-        match sha256.ComputeHash(key).Length * 8
-              |> ecb.ValidKeySize
-            with
-        | true -> ()
-        | false -> raise (IllegalKeySizeException(cipher, key))
-        // set the key
-        ecb.Key <- sha256.ComputeHash(key)
-        // ...
-        ecb.Mode <- CipherMode.ECB
-        // TODO: set a dummy iv for ecb just in case?
-        // ...
-        ecb.Padding <- PaddingMode.None // NOTE: this may be incorrect
-        // TODO: set block and feedback sizes?
-        // ...
-        let blockIdLittleEndian =
-            System.BitConverter.GetBytes(blockId)
-            |> toLittleEndian
+        match cipher with
+        | Cipher.AesCbc -> Aes.Create()
 
-        let filler x =
-            if x < blockIdLittleEndian.Length // clone blockIdLittleEndian first
-            then
-                blockIdLittleEndian.[x]
-            else
-                0uy // fill the remainder with zeroes
+    let blockSize =
+        match cipher with
+        | Cipher.AesCbc -> 16
 
-        let blockIdPadded = Array.init 16 filler
-        use ecbEncryptor = ecb.CreateEncryptor()
-        // NOTE: this may be incorrect
-        let out = ecbEncryptor.TransformFinalBlock(blockIdPadded, 0, 16)
-        // make sure that we got an iv of valid size for the chosen cipher
-        match out.Length * 8 with
-        | 128 -> out
-        | _ -> raise (IllegalIVectorSizeException(cipher, out))
+    // only support sha256 for essiv for now
+    use hasher = SHA256.Create()
+
+    let keySalt = hasher.ComputeHash(key)
+
+    // verify that the key size is valid for the chosen cipher
+    match keySalt.Length * 8 |> ecb.ValidKeySize with
+    | true -> ()
+    | false -> raise (IllegalKeySizeException(cipher, keySalt))
+
+    ecb.Key <- keySalt
+
+    ecb.Mode <- CipherMode.ECB
+    // TODO: set a dummy iv for ecb just in case?
+
+    ecb.Padding <- PaddingMode.None // NOTE: this may be incorrect
+    // TODO: set block and feedback sizes?
+
+    // linux dmcrypt ensures that the block number is written to memory as
+    // a little endian integer before using it for essiv
+    let sectorIdLittleEndian =
+        System.BitConverter.GetBytes(sectorId)
+        |> toLittleEndian
+
+    let sectorIdPadded = fill sectorIdLittleEndian |> Array.init blockSize
+
+    let ivOutput =
+        ecb
+            .CreateEncryptor()
+            .TransformFinalBlock(sectorIdPadded, 0, blockSize)
+
+    // make sure that we got an iv of valid size for the chosen cipher
+    if ivOutput.Length = blockSize then
+        ivOutput
+    else
+        raise (IllegalIVectorSizeException(cipher, ivOutput.Length))
 
 
-let createCryptoEngine
-    (cipher: Cipher)
-    (key: byte [])
-    (blockId: uint64)
-    : Aes =
+let createCryptoEngine (cipher: Cipher) (key: byte []) (blockId: uint64) : Aes =
     match cipher with
-    | Types.Cipher.AesCbc ->
+    | Cipher.AesCbc ->
         // create the crypto engine that this function will return
         let aes = Aes.Create()
         // verify that the key size is valid for the chosen cipher
