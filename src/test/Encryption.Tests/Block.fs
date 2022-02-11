@@ -65,6 +65,7 @@ open NUnit.Framework
 
 
 open VengefulFi.Encryption.Types
+open VengefulFi.Encryption.CryptoEngines
 open VengefulFi.Encryption.Block
 
 
@@ -117,7 +118,6 @@ let DecryptBlockTest
     let plainBlock = getPlainMock plainContentId
     let cryptBlock = getRawMock encryptedCid
 
-    // perform the actual decryption
     let decryptedBlock = decryptBlock AesCbc aesKey cryptBlock
 
     // deconstruct
@@ -144,7 +144,6 @@ let EncryptBlockTest
     let plainBlock = getPlainMock plainContentId
     let cryptBlock = getRawMock encryptedCid
 
-    // perform the actual encryption
     let encryptedBlock = encryptBlock AesCbc aesKey plainBlock
 
     // deconstruct
@@ -232,3 +231,53 @@ let DecryptAndEncryptBlockTest
 
     // compare
     Assert.AreEqual(cryptBlockByte, encryptedBlockByte)
+
+
+[<Test>]
+let DecryptBlockFakeKeysTest
+    ([<ValueSource(nameof (keys))>] aesKey: byte [])
+    ([<ValueSource(nameof (cids))>] plainContentId: PlainContentId)
+    : unit =
+
+    // look up the corresponding encrypted cid
+    let encryptedCid = fetchCidMock testMappings AesCbc aesKey plainContentId
+
+    // our starting points
+    //let plainBlock = getPlainMock plainContentId
+    let cryptBlock = getRawMock encryptedCid
+
+    let subKey = Array.sub aesKey 0 (aesKey.Length - 12)
+    let extKey = Array.zeroCreate<byte> (aesKey.Length + 12)
+
+    Assert.Throws<IllegalKeySizeException> (fun () ->
+        decryptBlock AesCbc subKey cryptBlock |> ignore)
+    |> ignore
+
+    Assert.Throws<IllegalKeySizeException> (fun () ->
+        decryptBlock AesCbc extKey cryptBlock |> ignore)
+    |> ignore
+
+
+[<Test>]
+let EncryptBlockFakeKeysTest
+    ([<ValueSource(nameof (keys))>] aesKey: byte [])
+    ([<ValueSource(nameof (cids))>] plainContentId: PlainContentId)
+    : unit =
+
+    // look up the corresponding encrypted cid
+    //let encryptedCid = fetchCidMock testMappings AesCbc aesKey plainContentId
+
+    // our starting points
+    let plainBlock = getPlainMock plainContentId
+    //let cryptBlock = getRawMock encryptedCid
+
+    let subKey = Array.sub aesKey 0 (aesKey.Length - 12)
+    let extKey = Array.zeroCreate<byte> (aesKey.Length + 12)
+
+    Assert.Throws<IllegalKeySizeException> (fun () ->
+        encryptBlock AesCbc subKey plainBlock |> ignore)
+    |> ignore
+
+    Assert.Throws<IllegalKeySizeException> (fun () ->
+        encryptBlock AesCbc extKey plainBlock |> ignore)
+    |> ignore
