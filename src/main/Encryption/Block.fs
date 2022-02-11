@@ -100,7 +100,6 @@ let decryptBlock
 
     Types.PlainContent(Types.GenericContent output)
 
-
 let encryptBlock
     (cipher: Cipher)
     (key: byte [])
@@ -138,7 +137,6 @@ let decryptGet
         // TODO: hash here to verify that the encrypted content returned matches the fetched cid?
         |> (decryptBlock cipher key) // returns PlainContent
     | Some (result) -> result
-
 
 let encryptPut
     (putRaw: PutRawType)

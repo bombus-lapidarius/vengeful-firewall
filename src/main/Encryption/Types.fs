@@ -61,7 +61,7 @@ SOFTWARE.
 open System.IO
 
 
-type GenericContentId = GenericContentId of byte[]
+type GenericContentId = GenericContentId of byte []
 type GenericContent = GenericContent of Stream
 
 
@@ -90,6 +90,7 @@ let fromStream (rawStream: Stream) : byte [] =
     use ms = new MemoryStream(256)
     rawStream.CopyTo(ms) // this should adjust the MemoryStream size as needed
     ms.ToArray()
+
 // move data from byte arrays to generic dotnet stream objects
 let toStream (rb: byte []) : Stream = new MemoryStream(rb) :> Stream // upcast
 
@@ -114,11 +115,12 @@ let compareByteArray (x: byte array) (y: byte array) =
 
 
 // compare two cids by extracting and comparing their underlying byte arrays
+
 let comparePlainCids x y : bool =
     let (PlainContentId (GenericContentId a)) = x
     let (PlainContentId (GenericContentId b)) = y
     compareByteArray a b
-// compare two cids by extracting and comparing their underlying byte arrays
+
 let compareEncryptedCids x y : bool =
     let (EncryptedContentId (GenericContentId a)) = x
     let (EncryptedContentId (GenericContentId b)) = y
@@ -126,6 +128,7 @@ let compareEncryptedCids x y : bool =
 
 
 // encoding conversions (base64)
+
 let fromBase64 s =
     try
         System.Convert.FromBase64String(s)
@@ -137,6 +140,7 @@ let toBase64 r = System.Convert.ToBase64String(r)
 
 
 // encoding conversions (hexstr)
+
 let fromHexStr (s: string) =
     try
         System.Convert.FromHexString(s)
@@ -147,37 +151,39 @@ let fromHexStr (s: string) =
 let toHexStr (r: byte array) = System.Convert.ToHexString(r)
 
 
-// cid encoding conversions (base64)
+// encoding conversions (base64)
+
 let plainCidfromBase64 s =
     fromBase64 s |> GenericContentId |> PlainContentId
-// cid encoding conversions (base64)
+
+let plainCidtoBase64 i =
+    let (PlainContentId (GenericContentId r)) = i
+    toBase64 r
+
 let encryptedCidfromBase64 s =
     fromBase64 s
     |> GenericContentId
     |> EncryptedContentId
-// cid encoding conversions (base64)
-let plainCidtoBase64 i =
-    let (PlainContentId (GenericContentId r)) = i
-    toBase64 r
-// cid encoding conversions (base64)
+
 let encryptedCidtoBase64 i =
     let (EncryptedContentId (GenericContentId r)) = i
     toBase64 r
 
 
-// cid encoding conversions (hexstr)
+// encoding conversions (hexstr)
+
 let plainCidfromHexStr s =
     fromHexStr s |> GenericContentId |> PlainContentId
-// cid encoding conversions (hexstr)
+
+let plainCidtoHexStr i =
+    let (PlainContentId (GenericContentId r)) = i
+    toHexStr r
+
 let encryptedCidfromHexStr s =
     fromHexStr s
     |> GenericContentId
     |> EncryptedContentId
-// cid encoding conversions (hexstr)
-let plainCidtoHexStr i =
-    let (PlainContentId (GenericContentId r)) = i
-    toHexStr r
-// cid encoding conversions (hexstr)
+
 let encryptedCidtoHexStr i =
     let (EncryptedContentId (GenericContentId r)) = i
     toHexStr r
