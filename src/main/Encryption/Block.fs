@@ -88,7 +88,7 @@ let decryptBlock
 
     use aes = createCryptoEngine cipher key 0x00uL // TODO: dangling ref?
     let cbcDecryptor = aes.CreateDecryptor()
-    let (Types.EncryptedContent (Types.GenericContent inputStream)) = input
+    let (EncryptedContent (GenericContent inputStream)) = input
 
     let output =
         new CryptoStream(
@@ -98,7 +98,7 @@ let decryptBlock
             false
         ) // TODO: does this return a usable stream object?
 
-    Types.PlainContent(Types.GenericContent output)
+    PlainContent(GenericContent output)
 
 let encryptBlock
     (cipher: Cipher)
@@ -108,7 +108,7 @@ let encryptBlock
 
     use aes = createCryptoEngine cipher key 0x00uL // TODO: dangling ref?
     let cbcEncryptor = aes.CreateEncryptor()
-    let (Types.PlainContent (Types.GenericContent inputStream)) = input
+    let (PlainContent (GenericContent inputStream)) = input
 
     let output =
         new CryptoStream(
@@ -118,7 +118,7 @@ let encryptBlock
             false
         ) // TODO: does this return a usable stream object?
 
-    Types.EncryptedContent(Types.GenericContent output)
+    EncryptedContent(GenericContent output)
 
 
 let decryptGet
@@ -150,8 +150,8 @@ let encryptPut
 
     // we can't pass on plaintext to our IPFS node
     // instead, we have to calculate the plaintext cid ourselves
-    let (Types.PlainContent input) = plainContent // deconstruct
-    let plainCid = Types.PlainContentId(calculateCid input)
+    let (PlainContent input) = plainContent // deconstruct
+    let plainCid = PlainContentId(calculateCid input)
     Cache.putIntoCache cache plainCid plainContent // returns unit
 
     encryptBlock cipher key plainContent // returns EncryptedContent
