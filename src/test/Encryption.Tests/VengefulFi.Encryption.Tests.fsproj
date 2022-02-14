@@ -22,6 +22,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\main\Ipld\VengefulFi.Ipld.fsproj" />
     <ProjectReference Include="..\..\main\Encryption\VengefulFi.Encryption.fsproj" />
   </ItemGroup>
 

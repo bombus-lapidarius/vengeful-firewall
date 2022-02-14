@@ -64,6 +64,9 @@ open System.IO
 open NUnit.Framework
 
 
+open VengefulFi.Ipld.Block
+
+
 open VengefulFi.Encryption.Types
 open VengefulFi.Encryption.CryptoEngines
 open VengefulFi.Encryption.Block

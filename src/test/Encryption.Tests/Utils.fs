@@ -62,6 +62,9 @@ open System.IO
 open System.Security.Cryptography
 
 
+open VengefulFi.Ipld.Block
+
+
 open VengefulFi.Encryption.Types
 open VengefulFi.Encryption.Block
 
@@ -126,7 +129,7 @@ let putRawMock s c : EncryptedContentId =
     use hasher = SHA256.Create()
     hasher.ComputeHash(stream)
     // construct
-    |> GenericContentId
+    |> RawContentId
     |> EncryptedContentId
 
 
