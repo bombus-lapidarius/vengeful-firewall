@@ -107,35 +107,35 @@ exception VersionCodecMismatchException of CidVersion * Multicodec
 
 let verifyHashSize (name: HashName) (size: uint32) =
     match (name, size) with // list all valid combinations
-    | (HashName.Sha224, 224u) -> true
-    | (HashName.Sha256, 256u) -> true
-    | (HashName.Sha384, 384u) -> true
-    | (HashName.Sha512, 512u) -> true
+    | (HashName.Sha224, 224u) -> ()
+    | (HashName.Sha256, 256u) -> ()
+    | (HashName.Sha384, 384u) -> ()
+    | (HashName.Sha512, 512u) -> ()
     // this should be tried last
     | _ -> raise (HashSizeMismatchException(name, size))
 
 
 let private hashData
-    (name: HashName)
-    (size: uint32)
+    (hashName: HashName)
+    (hashSize: uint32)
     (data: RawContent)
     : Digest =
 
-    match verifyHashSize name size with
-    | true -> // select the correct algorithm to hash the data
-        match name with
-        | HashName.Sha256 ->
-            use hasher = SHA256.Create()
-            hasher.ComputeHash(data) |> Digest // TODO: reset cursor position?
-        | HashName.Sha384 ->
-            use hasher = SHA384.Create()
-            hasher.ComputeHash(data) |> Digest // TODO: reset cursor position?
-        | HashName.Sha512 ->
-            use hasher = SHA512.Create()
-            hasher.ComputeHash(data) |> Digest // TODO: reset cursor position?
-        | _ -> raise (UnsupportedHashAlgorithmException(name, size))
+    verifyHashSize hashName hashSize
+
+    // select the correct algorithm to hash the data
+    match hashName with
+    | HashName.Sha256 ->
+        use hasher = SHA256.Create()
+        hasher.ComputeHash(data) |> Digest // TODO: reset cursor position?
+    | HashName.Sha384 ->
+        use hasher = SHA384.Create()
+        hasher.ComputeHash(data) |> Digest // TODO: reset cursor position?
+    | HashName.Sha512 ->
+        use hasher = SHA512.Create()
+        hasher.ComputeHash(data) |> Digest // TODO: reset cursor position?
     // this should be tried last
-    | _ -> raise (HashSizeMismatchException(name, size))
+    | _ -> raise (UnsupportedHashAlgorithmException(hashName, hashSize))
 
 
 let calculateCid
