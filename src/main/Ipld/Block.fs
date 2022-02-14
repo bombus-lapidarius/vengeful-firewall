@@ -68,8 +68,8 @@ type Multicodec =
     | DagPb = 0x70
 
 type CidVersion =
-    | Cid0
-    | Cid1
+    | Cid0 = 0x00 // TODO: this may be incorrect
+    | Cid1 = 0x01
 
 
 type HashName =
@@ -78,56 +78,61 @@ type HashName =
     | Sha384 = 0x20
     | Sha512 = 0x13
 
-type HashSize = HashSize of uint32
-type Digest = Digest of byte [] // the raw hash as byte array
+type Digest = Digest of byte []
+
+type Hash =
+    { Name: HashName
+      Size: uint32
+      Digest: Digest }
 
 
-type RawContentId =
-    { // TODO: struct?
-      CidVersion: CidVersion
+type RawContentId = RawContentId of byte []
+type RawContent = Stream
+
+
+// TODO: struct?
+type GenericContentIdFuture =
+    { CidVersion: CidVersion
       Multicodec: Multicodec
-      HashName: HashName
-      HashSize: HashSize
-      Digest: Digest } // the raw hash as byte array
+      Hash: Hash }
 
-type RawContent = RawContent of Stream
+type GenericContentId = RawContentId
+type GenericContent = GenericContent of RawContent
 
 
-exception HashSizeMismatchException of HashName * HashSize
-exception UnsupportedHashAlgorithmException of HashName * HashSize
+exception HashSizeMismatchException of HashName * uint32
+exception UnsupportedHashAlgorithmException of HashName * uint32
 exception VersionCodecMismatchException of CidVersion * Multicodec
 
 
-let verifyHashSize (name: HashName) (size: HashSize) =
+let verifyHashSize (name: HashName) (size: uint32) =
     match (name, size) with // list all valid combinations
-    | (HashName.Sha224, HashSize 224u) -> true
-    | (HashName.Sha256, HashSize 256u) -> true
-    | (HashName.Sha384, HashSize 384u) -> true
-    | (HashName.Sha512, HashSize 512u) -> true
+    | (HashName.Sha224, 224u) -> true
+    | (HashName.Sha256, 256u) -> true
+    | (HashName.Sha384, 384u) -> true
+    | (HashName.Sha512, 512u) -> true
     // this should be tried last
     | _ -> raise (HashSizeMismatchException(name, size))
 
 
 let private hashData
     (name: HashName)
-    (size: HashSize)
+    (size: uint32)
     (data: RawContent)
     : Digest =
-
-    let (RawContent stream) = data
 
     match verifyHashSize name size with
     | true -> // select the correct algorithm to hash the data
         match name with
         | HashName.Sha256 ->
             use hasher = SHA256.Create()
-            hasher.ComputeHash(stream) |> Digest // TODO: reset cursor position?
+            hasher.ComputeHash(data) |> Digest // TODO: reset cursor position?
         | HashName.Sha384 ->
             use hasher = SHA384.Create()
-            hasher.ComputeHash(stream) |> Digest // TODO: reset cursor position?
+            hasher.ComputeHash(data) |> Digest // TODO: reset cursor position?
         | HashName.Sha512 ->
             use hasher = SHA512.Create()
-            hasher.ComputeHash(stream) |> Digest // TODO: reset cursor position?
+            hasher.ComputeHash(data) |> Digest // TODO: reset cursor position?
         | _ -> raise (UnsupportedHashAlgorithmException(name, size))
     // this should be tried last
     | _ -> raise (HashSizeMismatchException(name, size))
@@ -135,7 +140,7 @@ let private hashData
 
 let calculateCid
     (hashName: HashName)
-    (hashSize: HashSize)
+    (hashSize: uint32)
     (cidVersion: CidVersion)
     (multicodec: Multicodec)
     (data: RawContent)
@@ -146,7 +151,7 @@ let calculateCid
 
     { CidVersion = cidVersion
       Multicodec = multicodec
-      HashName = hashName
-      HashSize = hashSize
-      Digest = digest // the raw hash as byte array
-    }
+      Hash =
+        { Name = hashName
+          Size = hashSize
+          Digest = digest } }

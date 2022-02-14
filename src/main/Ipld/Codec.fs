@@ -65,13 +65,13 @@ open VengefulFi.Ipld.Block
 
 
 type PbLink =
-    { Hash: HashName * HashSize * Digest
+    { Hash: HashName * uint32 * Digest
       Name: string // TODO: ensure utf-8
       TargetSize: uint64 }
 
 
 type PbNode =
-    { Links: (HashName * HashSize * Digest) list // TODO: raw hash only?
+    { Links: (HashName * uint32 * Digest) list // TODO: raw hash only?
       Data: byte [] }
 
 
@@ -90,7 +90,7 @@ exception UnsupportedCodecException of CidVersion * Multicodec
 // TODO: use abstract DagNode type and just encode / decode into / from CBOR, JSON and ProtoBuf
 let newDagNode
     (hashName: HashName)
-    (hashSize: HashSize)
+    (hashSize: uint32)
     (cidVersion: CidVersion)
     (encoding: Multicodec)
     (data: byte [])
