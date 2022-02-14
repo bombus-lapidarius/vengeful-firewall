@@ -102,7 +102,7 @@ type GenericContent = GenericContent of RawContent
 
 exception HashSizeMismatchException of HashName * uint32
 exception UnsupportedHashAlgorithmException of HashName * uint32
-exception VersionCodecMismatchException of CidVersion * Multicodec
+exception CidVersionAndCodecMismatchException of CidVersion * Multicodec
 
 
 let verifyHashSize (name: HashName) (size: uint32) =
@@ -113,6 +113,16 @@ let verifyHashSize (name: HashName) (size: uint32) =
     | (HashName.Sha512, 512u) -> ()
     // this should be tried last
     | _ -> raise (HashSizeMismatchException(name, size))
+
+
+let verifyCidVersionAndCodec (version: CidVersion) (codec: Multicodec) =
+    match (version, codec) with // list all valid combinations
+    | (CidVersion.Cid0, Multicodec.DagPb) -> ()
+    | (CidVersion.Cid1, Multicodec.DagCbor) -> ()
+    | (CidVersion.Cid1, Multicodec.DagJson) -> ()
+    | (CidVersion.Cid1, Multicodec.DagPb) -> ()
+    // this should be tried last
+    | _ -> raise (CidVersionAndCodecMismatchException(version, codec))
 
 
 let private hashData
