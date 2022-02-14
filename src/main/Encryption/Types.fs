@@ -61,8 +61,7 @@ SOFTWARE.
 open System.IO
 
 
-type GenericContentId = GenericContentId of byte []
-type GenericContent = GenericContent of Stream
+open VengefulFi.Ipld.Block
 
 
 type PlainContentId = PlainContentId of GenericContentId
@@ -117,13 +116,13 @@ let compareByteArray (x: byte array) (y: byte array) =
 // compare two cids by extracting and comparing their underlying byte arrays
 
 let comparePlainCids x y : bool =
-    let (PlainContentId (GenericContentId a)) = x
-    let (PlainContentId (GenericContentId b)) = y
+    let (PlainContentId (RawContentId a)) = x
+    let (PlainContentId (RawContentId b)) = y
     compareByteArray a b
 
 let compareEncryptedCids x y : bool =
-    let (EncryptedContentId (GenericContentId a)) = x
-    let (EncryptedContentId (GenericContentId b)) = y
+    let (EncryptedContentId (RawContentId a)) = x
+    let (EncryptedContentId (RawContentId b)) = y
     compareByteArray a b
 
 
@@ -154,41 +153,36 @@ let toHexStr (r: byte array) = System.Convert.ToHexString(r)
 // encoding conversions (base64)
 
 let plainCidfromBase64 s =
-    fromBase64 s |> GenericContentId |> PlainContentId
+    fromBase64 s |> RawContentId |> PlainContentId
 
 let plainCidtoBase64 i =
-    let (PlainContentId (GenericContentId r)) = i
+    let (PlainContentId (RawContentId r)) = i
     toBase64 r
 
 let encryptedCidfromBase64 s =
-    fromBase64 s
-    |> GenericContentId
-    |> EncryptedContentId
+    fromBase64 s |> RawContentId |> EncryptedContentId
 
 let encryptedCidtoBase64 i =
-    let (EncryptedContentId (GenericContentId r)) = i
+    let (EncryptedContentId (RawContentId r)) = i
     toBase64 r
 
 
 // encoding conversions (hexstr)
 
 let plainCidfromHexStr s =
-    fromHexStr s |> GenericContentId |> PlainContentId
+    fromHexStr s |> RawContentId |> PlainContentId
 
 let plainCidtoHexStr i =
-    let (PlainContentId (GenericContentId r)) = i
+    let (PlainContentId (RawContentId r)) = i
     toHexStr r
 
 let encryptedCidfromHexStr s =
-    fromHexStr s
-    |> GenericContentId
-    |> EncryptedContentId
+    fromHexStr s |> RawContentId |> EncryptedContentId
 
 let encryptedCidtoHexStr i =
-    let (EncryptedContentId (GenericContentId r)) = i
+    let (EncryptedContentId (RawContentId r)) = i
     toHexStr r
 
 
-type Cipher =
-    | AesCbc
-    //| AesXts
+type Cipher = | AesCbc
+//| AesXts

@@ -5,6 +5,9 @@
     <WarnOn>3390;$(WarnOn)</WarnOn>
   </PropertyGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Ipld\VengefulFi.Ipld.fsproj" />
+  </ItemGroup>
+  <ItemGroup>
     <Compile Include="Types.fs" />
     <Compile Include="Cache.fs" />
     <Compile Include="CryptoEngines.fs" />
