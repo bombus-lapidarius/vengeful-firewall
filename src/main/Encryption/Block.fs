@@ -61,7 +61,7 @@ SOFTWARE.
 open System.Security.Cryptography
 
 
-open VengefulFi.Ipld.Block
+open VengefulFi.Ipld
 
 
 open VengefulFi.Encryption.Types

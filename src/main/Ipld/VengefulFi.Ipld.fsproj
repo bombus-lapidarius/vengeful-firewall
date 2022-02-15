@@ -7,7 +7,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="Types.fs" />
     <Compile Include="Block.fs" />
+    <Compile Include="Codec.DagCbor.fs" />
+    <Compile Include="Codec.DagJson.fs" />
+    <Compile Include="Codec.DagPb.fs" />
     <Compile Include="Codec.fs" />
   </ItemGroup>
 

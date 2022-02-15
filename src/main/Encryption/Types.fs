@@ -61,7 +61,7 @@ SOFTWARE.
 open System.IO
 
 
-open VengefulFi.Ipld.Block
+open VengefulFi.Ipld
 
 
 type PlainContentId = PlainContentId of GenericContentId

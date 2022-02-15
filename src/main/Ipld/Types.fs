@@ -1,4 +1,4 @@
-module VengefulFi.Ipld.Block
+namespace VengefulFi.Ipld
 
 
 (* #############################################################################
@@ -58,66 +58,47 @@ SOFTWARE.
 ############################################################################# *)
 
 
-open System.Security.Cryptography
+open System.IO
 
 
-let verifyHashSize (name: HashName) (size: uint32) =
-    match (name, size) with // list all valid combinations
-    | (HashName.Sha224, 224u) -> ()
-    | (HashName.Sha256, 256u) -> ()
-    | (HashName.Sha384, 384u) -> ()
-    | (HashName.Sha512, 512u) -> ()
-    // this should be tried last
-    | _ -> raise (HashSizeMismatchException(name, size))
+type Multicodec =
+    | DagCbor = 0x71
+    | DagJson = 0x0129
+    | DagPb = 0x70
+
+type CidVersion =
+    | Cid0 = 0x00 // TODO: this may be incorrect
+    | Cid1 = 0x01
 
 
-let verifyCidVersionAndCodec (version: CidVersion) (codec: Multicodec) =
-    match (version, codec) with // list all valid combinations
-    | (CidVersion.Cid0, Multicodec.DagPb) -> ()
-    | (CidVersion.Cid1, Multicodec.DagCbor) -> ()
-    | (CidVersion.Cid1, Multicodec.DagJson) -> ()
-    | (CidVersion.Cid1, Multicodec.DagPb) -> ()
-    // this should be tried last
-    | _ -> raise (CidVersionAndCodecMismatchException(version, codec))
+type HashName =
+    | Sha224 = 0x1013
+    | Sha256 = 0x12
+    | Sha384 = 0x20
+    | Sha512 = 0x13
+
+type Digest = Digest of byte []
+
+type Hash =
+    { Name: HashName
+      Size: uint32
+      Digest: Digest }
 
 
-let private hashData
-    (hashName: HashName)
-    (hashSize: uint32)
-    (data: RawContent)
-    : Digest =
-
-    verifyHashSize hashName hashSize
-
-    // select the correct algorithm to hash the data
-    match hashName with
-    | HashName.Sha256 ->
-        use hasher = SHA256.Create()
-        hasher.ComputeHash(data) |> Digest // TODO: reset cursor position?
-    | HashName.Sha384 ->
-        use hasher = SHA384.Create()
-        hasher.ComputeHash(data) |> Digest // TODO: reset cursor position?
-    | HashName.Sha512 ->
-        use hasher = SHA512.Create()
-        hasher.ComputeHash(data) |> Digest // TODO: reset cursor position?
-    // this should be tried last
-    | _ -> raise (UnsupportedHashAlgorithmException(hashName, hashSize))
+exception CidVersionAndCodecMismatchException of CidVersion * Multicodec
+exception UnsupportedHashAlgorithmException of HashName * uint32
+exception HashSizeMismatchException of HashName * uint32
 
 
-let calculateCid
-    (hashName: HashName)
-    (hashSize: uint32)
-    (cidVersion: CidVersion)
-    (multicodec: Multicodec)
-    (data: RawContent)
-    =
+type RawContentId = RawContentId of byte []
+type RawContent = Stream
 
-    // TODO: verify compatibility of cid versions, codecs and hashes
-    let digest = hashData hashName hashSize data
 
-    { CidVersion = cidVersion
-      Multicodec = multicodec
-      Hash =
-        { Name = hashName
-          Size = hashSize
-          Digest = digest } }
+// TODO: struct?
+type GenericContentIdFuture =
+    { CidVersion: CidVersion
+      Multicodec: Multicodec
+      Hash: Hash }
+
+type GenericContentId = RawContentId
+type GenericContent = GenericContent of RawContent

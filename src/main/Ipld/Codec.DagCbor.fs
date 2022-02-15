@@ -1,4 +1,4 @@
-module VengefulFi.Ipld.Block
+module VengefulFi.Ipld.Codec.DagCbor
 
 
 (* #############################################################################
@@ -56,68 +56,3 @@ SOFTWARE.
 
 
 ############################################################################# *)
-
-
-open System.Security.Cryptography
-
-
-let verifyHashSize (name: HashName) (size: uint32) =
-    match (name, size) with // list all valid combinations
-    | (HashName.Sha224, 224u) -> ()
-    | (HashName.Sha256, 256u) -> ()
-    | (HashName.Sha384, 384u) -> ()
-    | (HashName.Sha512, 512u) -> ()
-    // this should be tried last
-    | _ -> raise (HashSizeMismatchException(name, size))
-
-
-let verifyCidVersionAndCodec (version: CidVersion) (codec: Multicodec) =
-    match (version, codec) with // list all valid combinations
-    | (CidVersion.Cid0, Multicodec.DagPb) -> ()
-    | (CidVersion.Cid1, Multicodec.DagCbor) -> ()
-    | (CidVersion.Cid1, Multicodec.DagJson) -> ()
-    | (CidVersion.Cid1, Multicodec.DagPb) -> ()
-    // this should be tried last
-    | _ -> raise (CidVersionAndCodecMismatchException(version, codec))
-
-
-let private hashData
-    (hashName: HashName)
-    (hashSize: uint32)
-    (data: RawContent)
-    : Digest =
-
-    verifyHashSize hashName hashSize
-
-    // select the correct algorithm to hash the data
-    match hashName with
-    | HashName.Sha256 ->
-        use hasher = SHA256.Create()
-        hasher.ComputeHash(data) |> Digest // TODO: reset cursor position?
-    | HashName.Sha384 ->
-        use hasher = SHA384.Create()
-        hasher.ComputeHash(data) |> Digest // TODO: reset cursor position?
-    | HashName.Sha512 ->
-        use hasher = SHA512.Create()
-        hasher.ComputeHash(data) |> Digest // TODO: reset cursor position?
-    // this should be tried last
-    | _ -> raise (UnsupportedHashAlgorithmException(hashName, hashSize))
-
-
-let calculateCid
-    (hashName: HashName)
-    (hashSize: uint32)
-    (cidVersion: CidVersion)
-    (multicodec: Multicodec)
-    (data: RawContent)
-    =
-
-    // TODO: verify compatibility of cid versions, codecs and hashes
-    let digest = hashData hashName hashSize data
-
-    { CidVersion = cidVersion
-      Multicodec = multicodec
-      Hash =
-        { Name = hashName
-          Size = hashSize
-          Digest = digest } }

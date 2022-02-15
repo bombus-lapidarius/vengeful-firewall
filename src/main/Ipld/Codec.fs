@@ -1,4 +1,4 @@
-module VengefulFi.Ipld.Codec
+namespace VengefulFi.Ipld.Codec
 
 
 (* #############################################################################
@@ -56,50 +56,3 @@ SOFTWARE.
 
 
 ############################################################################# *)
-
-
-open VengefulFi.Ipld.Block
-
-
-// TODO: move codecs to their own modules and only reference them here
-
-
-type PbLink =
-    { Hash: HashName * uint32 * Digest
-      Name: string // TODO: ensure utf-8
-      TargetSize: uint64 }
-
-
-type PbNode =
-    { Links: (HashName * uint32 * Digest) list // TODO: raw hash only?
-      Data: byte [] }
-
-
-// TODO: move codecs to their own modules and only reference them here
-
-
-// TODO: use interface here?
-let private newDagNodeCbor hashName hashSize cidVersion a = a
-let private newDagNodeJson hashName hashSize cidVersion b = b
-let private newDagNodePb hashName hashSize cidVersion c = c
-
-
-exception UnsupportedCodecException of CidVersion * Multicodec
-
-
-// TODO: use abstract DagNode type and just encode / decode into / from CBOR, JSON and ProtoBuf
-let newDagNode
-    (hashName: HashName)
-    (hashSize: uint32)
-    (cidVersion: CidVersion)
-    (encoding: Multicodec)
-    (data: byte [])
-    =
-
-    // TODO: verify compatibility of cid versions, codecs and hashes
-    // TODO: include the list of links
-    match encoding with
-    | Multicodec.DagCbor -> newDagNodeCbor hashName hashSize cidVersion data
-    | Multicodec.DagJson -> newDagNodeJson hashName hashSize cidVersion data
-    | Multicodec.DagPb -> newDagNodePb hashName hashSize cidVersion data
-    | _ -> raise (UnsupportedCodecException(cidVersion, encoding))
