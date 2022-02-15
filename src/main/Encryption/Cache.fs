@@ -58,7 +58,7 @@ SOFTWARE.
 ############################################################################# *)
 
 
-open VengefulFi.Encryption.Types
+open VengefulFi.Encryption
 
 
 type PlainDataCache = int option // TODO

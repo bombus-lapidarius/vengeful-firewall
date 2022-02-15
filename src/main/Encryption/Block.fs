@@ -64,7 +64,7 @@ open System.Security.Cryptography
 open VengefulFi.Ipld
 
 
-open VengefulFi.Encryption.Types
+open VengefulFi.Encryption
 open VengefulFi.Encryption.CryptoEngines
 
 

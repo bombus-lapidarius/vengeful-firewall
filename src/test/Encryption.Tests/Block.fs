@@ -67,7 +67,8 @@ open NUnit.Framework
 open VengefulFi.Ipld
 
 
-open VengefulFi.Encryption.Types
+open VengefulFi.Encryption
+open VengefulFi.Encryption.Conversions
 open VengefulFi.Encryption.CryptoEngines
 open VengefulFi.Encryption.Block
 

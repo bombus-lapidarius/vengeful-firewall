@@ -1,4 +1,4 @@
-module VengefulFi.Encryption.Types
+namespace VengefulFi.Encryption
 
 
 (* #############################################################################
@@ -58,9 +58,6 @@ SOFTWARE.
 ############################################################################# *)
 
 
-open System.IO
-
-
 open VengefulFi.Ipld
 
 
@@ -72,116 +69,12 @@ type EncryptedContentId = EncryptedContentId of GenericContentId
 type EncryptedContent = EncryptedContent of GenericContent
 
 
-exception Base64ConversionFailedException of string
-exception HexStrConversionFailedException of string
-
-
 exception UnknownContentIdException
 exception UnknownContentException
 
 
 exception IllegalContentIdException
 exception IllegalContentException
-
-
-// move data from generic dotnet stream objects to byte arrays
-let fromStream (rawStream: Stream) : byte [] =
-    use ms = new MemoryStream(256)
-    rawStream.CopyTo(ms) // this should adjust the MemoryStream size as needed
-    ms.ToArray()
-
-// move data from byte arrays to generic dotnet stream objects
-let toStream (rb: byte []) : Stream = new MemoryStream(rb) :> Stream // upcast
-
-
-// compare two byte arrays by folding them using a function that tests their
-// individual bytes for equality
-let compareByteArray (x: byte array) (y: byte array) =
-    let fd s a b =
-        if a = b // bytes at identical index positions must be equal
-        then
-            s
-        else
-            s + 1
-
-    try
-        match Array.fold2 fd 0 x y with
-        | 0 -> true
-        | _ -> false
-    with
-    // two arrays of different length cannot be the same
-    | :? System.ArgumentException -> false
-
-
-// compare two cids by extracting and comparing their underlying byte arrays
-
-let comparePlainCids x y : bool =
-    let (PlainContentId (RawContentId a)) = x
-    let (PlainContentId (RawContentId b)) = y
-    compareByteArray a b
-
-let compareEncryptedCids x y : bool =
-    let (EncryptedContentId (RawContentId a)) = x
-    let (EncryptedContentId (RawContentId b)) = y
-    compareByteArray a b
-
-
-// encoding conversions (base64)
-
-let fromBase64 s =
-    try
-        System.Convert.FromBase64String(s)
-    with
-    // the string may contain illegal characters, pass on the offending string
-    | _ -> raise (Base64ConversionFailedException s)
-
-let toBase64 r = System.Convert.ToBase64String(r)
-
-
-// encoding conversions (hexstr)
-
-let fromHexStr (s: string) =
-    try
-        System.Convert.FromHexString(s)
-    with
-    // the string may contain illegal characters, pass on the offending string
-    | _ -> raise (HexStrConversionFailedException s)
-
-let toHexStr (r: byte array) = System.Convert.ToHexString(r)
-
-
-// encoding conversions (base64)
-
-let plainCidfromBase64 s =
-    fromBase64 s |> RawContentId |> PlainContentId
-
-let plainCidtoBase64 i =
-    let (PlainContentId (RawContentId r)) = i
-    toBase64 r
-
-let encryptedCidfromBase64 s =
-    fromBase64 s |> RawContentId |> EncryptedContentId
-
-let encryptedCidtoBase64 i =
-    let (EncryptedContentId (RawContentId r)) = i
-    toBase64 r
-
-
-// encoding conversions (hexstr)
-
-let plainCidfromHexStr s =
-    fromHexStr s |> RawContentId |> PlainContentId
-
-let plainCidtoHexStr i =
-    let (PlainContentId (RawContentId r)) = i
-    toHexStr r
-
-let encryptedCidfromHexStr s =
-    fromHexStr s |> RawContentId |> EncryptedContentId
-
-let encryptedCidtoHexStr i =
-    let (EncryptedContentId (RawContentId r)) = i
-    toHexStr r
 
 
 type Cipher = | AesCbc

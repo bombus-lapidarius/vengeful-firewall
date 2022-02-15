@@ -9,6 +9,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Types.fs" />
+    <Compile Include="Conversions.fs" />
     <Compile Include="Cache.fs" />
     <Compile Include="CryptoEngines.fs" />
     <Compile Include="Block.fs" />

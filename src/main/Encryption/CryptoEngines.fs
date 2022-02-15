@@ -61,7 +61,7 @@ SOFTWARE.
 open System.Security.Cryptography
 
 
-open VengefulFi.Encryption.Types
+open VengefulFi.Encryption
 
 
 exception IllegalKeySizeException of Cipher * byte []
