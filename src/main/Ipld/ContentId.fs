@@ -1,4 +1,4 @@
-module VengefulFi.Ipld.Block
+module VengefulFi.Ipld.ContentId
 
 
 (* #############################################################################
