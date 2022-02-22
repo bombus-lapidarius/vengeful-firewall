@@ -7,7 +7,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="VarInt" Version="1.2.2" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Compile Include="Types.fs" />
+    <Compile Include="Conversions.fs" />
     <Compile Include="ContentId.fs" />
     <Compile Include="Codec.DagCbor.fs" />
     <Compile Include="Codec.DagJson.fs" />

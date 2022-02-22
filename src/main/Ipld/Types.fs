@@ -62,20 +62,20 @@ open System.IO
 
 
 type Multicodec =
-    | DagCbor = 0x71
-    | DagJson = 0x0129
-    | DagPb = 0x70
+    | DagCbor = 0x71ul
+    | DagJson = 0x0129ul
+    | DagPb = 0x70ul
 
 type CidVersion =
-    | Cid0 = 0x00 // TODO: this may be incorrect
-    | Cid1 = 0x01
+    | Cid0 = 0x00ul // TODO: this may be incorrect
+    | Cid1 = 0x01ul
 
 
 type HashName =
-    | Sha224 = 0x1013
-    | Sha256 = 0x12
-    | Sha384 = 0x20
-    | Sha512 = 0x13
+    | Sha224 = 0x1013ul
+    | Sha256 = 0x12ul
+    | Sha384 = 0x20ul
+    | Sha512 = 0x13ul
 
 type Digest = Digest of byte []
 
