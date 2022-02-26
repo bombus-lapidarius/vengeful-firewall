@@ -93,6 +93,14 @@ test Encryption:
     paths:
       - src/main/Encryption/bin/Release/
       - src/main/Encryption/obj/Release/
+test Ipld:
+  stage: test
+  script:
+    - dotnet test -c Release --collect:"XPlat Code Coverage" ./src/test/Ipld.Tests/VengefulFi.Ipld.Tests.fsproj
+  artifacts:
+    paths:
+      - src/main/Ipld/bin/Release/
+      - src/main/Ipld/obj/Release/
 
 
 # run builds and tests in parallel for all components
