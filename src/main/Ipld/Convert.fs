@@ -157,23 +157,27 @@ let toStream (rb: byte []) : Stream = new MemoryStream(rb) :> Stream // upcast
 
 // encoding conversions (base64)
 
-let fromBase64 s =
+let rawCidFromBase64 s =
     try
-        System.Convert.FromBase64String(s)
+        System.Convert.FromBase64String(s) |> RawContentId
     with
     // the string may contain illegal characters, pass on the offending string
     | _ -> raise (Base64ConversionFailedException s)
 
-let toBase64 r = System.Convert.ToBase64String(r)
+let rawCidToBase64 r =
+    let (RawContentId a) = r
+    System.Convert.ToBase64String(a)
 
 
 // encoding conversions (hexstr)
 
-let fromHexStr (s: string) =
+let rawCidFromHexStr (s: string) =
     try
-        System.Convert.FromHexString(s)
+        System.Convert.FromHexString(s) |> RawContentId
     with
     // the string may contain illegal characters, pass on the offending string
     | _ -> raise (HexStrConversionFailedException s)
 
-let toHexStr (r: byte array) = System.Convert.ToHexString(r)
+let rawCidToHexStr r =
+    let (RawContentId a) = r
+    System.Convert.ToHexString(a)
