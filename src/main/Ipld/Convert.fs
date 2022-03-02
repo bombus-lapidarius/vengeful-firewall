@@ -1,4 +1,4 @@
-module VengefulFi.Ipld.Conversions
+module VengefulFi.Ipld.Convert
 
 
 (* #############################################################################

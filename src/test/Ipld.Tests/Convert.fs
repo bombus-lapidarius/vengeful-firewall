@@ -1,4 +1,4 @@
-module VengefulFi.Ipld.Tests.Conversions
+module VengefulFi.Ipld.Tests.Convert
 
 
 (* #############################################################################
@@ -165,7 +165,7 @@ let genericToRaw
     : unit =
 
     let (RawContentId ex) = cidMapping.Raw
-    let (RawContentId ac) = cidMapping.Generic |> Conversions.composeBinaryCid
+    let (RawContentId ac) = cidMapping.Generic |> Convert.composeBinaryCid
 
     Assert.AreEqual(ex, ac)
 
@@ -176,7 +176,7 @@ let rawToGeneric
     : unit =
 
     let ex = cidMapping.Generic
-    let ac = cidMapping.Raw |> Conversions.parseBinaryCid
+    let ac = cidMapping.Raw |> Convert.parseBinaryCid
 
     let (Digest exDigest) = ex.Hash.Digest
     let (Digest acDigest) = ac.Hash.Digest
