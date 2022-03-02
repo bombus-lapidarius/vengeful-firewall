@@ -68,7 +68,8 @@ open VengefulFi.Ipld
 
 
 open VengefulFi.Encryption
-open VengefulFi.Encryption.Conversions
+open VengefulFi.Encryption.Compare
+open VengefulFi.Encryption.Convert
 open VengefulFi.Encryption.CryptoEngines
 open VengefulFi.Encryption.Block
 
