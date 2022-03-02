@@ -59,6 +59,7 @@ SOFTWARE.
 
 
 open System.IO
+open System.Linq
 open System.Security.Cryptography
 
 
@@ -79,10 +80,14 @@ type KeyMapping =
       Mappings: list<CidMapping> }
 
 
+let private compareByteArray (x: byte array) (y: byte array) =
+    x.SequenceEqual(y)
+
+
 let private keyAndCidMappingFromString (s: string) =
     let a = s.Split([| '.' |])
 
-    let aesKey = fromHexStr a.[0]
+    let aesKey = System.Convert.FromHexString a.[0]
     let plainCid = plainCidfromHexStr a.[1]
     let encryptedCid = encryptedCidfromHexStr a.[2]
 
@@ -128,6 +133,7 @@ let putRawMock s c : EncryptedContentId =
     let (EncryptedContent (GenericContent stream)) = c
     // generate the correct hash for the data provided
     use hasher = SHA256.Create()
+
     hasher.ComputeHash(stream)
     // construct
     |> RawContentId
