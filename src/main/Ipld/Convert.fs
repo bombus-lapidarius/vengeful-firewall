@@ -58,6 +58,9 @@ SOFTWARE.
 ############################################################################# *)
 
 
+open System.IO
+
+
 open WojciechMikołajewicz
 
 
@@ -69,6 +72,10 @@ exception VarintOverflowException
 
 
 exception MalformedBinaryCidException
+
+
+exception Base64ConversionFailedException of string
+exception HexStrConversionFailedException of string
 
 
 // provide the third party library with a functional shell
@@ -136,3 +143,37 @@ let composeBinaryCid (genericContentId: GenericContentIdFuture) : RawContentId =
       digest ]
     |> Array.concat
     |> RawContentId
+
+
+// move data from generic dotnet stream objects to byte arrays
+let fromStream (rawStream: Stream) : byte [] =
+    use ms = new MemoryStream(256)
+    rawStream.CopyTo(ms) // this should adjust the MemoryStream size as needed
+    ms.ToArray()
+
+// move data from byte arrays to generic dotnet stream objects
+let toStream (rb: byte []) : Stream = new MemoryStream(rb) :> Stream // upcast
+
+
+// encoding conversions (base64)
+
+let fromBase64 s =
+    try
+        System.Convert.FromBase64String(s)
+    with
+    // the string may contain illegal characters, pass on the offending string
+    | _ -> raise (Base64ConversionFailedException s)
+
+let toBase64 r = System.Convert.ToBase64String(r)
+
+
+// encoding conversions (hexstr)
+
+let fromHexStr (s: string) =
+    try
+        System.Convert.FromHexString(s)
+    with
+    // the string may contain illegal characters, pass on the offending string
+    | _ -> raise (HexStrConversionFailedException s)
+
+let toHexStr (r: byte array) = System.Convert.ToHexString(r)
