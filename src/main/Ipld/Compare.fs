@@ -58,20 +58,11 @@ SOFTWARE.
 ############################################################################# *)
 
 
-// compare two byte arrays by folding them using a function that tests their
-// individual bytes for equality
-let compareByteArray (x: byte array) (y: byte array) =
-    let fd s a b =
-        if a = b // bytes at identical index positions must be equal
-        then
-            s
-        else
-            s + 1
+open System.Linq
 
-    try
-        match Array.fold2 fd 0 x y with
-        | 0 -> true
-        | _ -> false
-    with
-    // two arrays of different length cannot be the same
-    | :? System.ArgumentException -> false
+
+let compareRawCids x y : bool =
+    let (RawContentId a) = x
+    let (RawContentId b) = y
+
+    a.SequenceEqual(b)

@@ -58,18 +58,19 @@ SOFTWARE.
 ############################################################################# *)
 
 
-open VengefulFi.Ipld
 open VengefulFi.Ipld.Compare
 
 
 // compare two cids by extracting and comparing their underlying byte arrays
 
 let comparePlainCids x y : bool =
-    let (PlainContentId (RawContentId a)) = x
-    let (PlainContentId (RawContentId b)) = y
-    compareByteArray a b
+    let (PlainContentId a) = x
+    let (PlainContentId b) = y
+
+    compareRawCids a b
 
 let compareEncryptedCids x y : bool =
-    let (EncryptedContentId (RawContentId a)) = x
-    let (EncryptedContentId (RawContentId b)) = y
-    compareByteArray a b
+    let (EncryptedContentId a) = x
+    let (EncryptedContentId b) = y
+
+    compareRawCids a b
