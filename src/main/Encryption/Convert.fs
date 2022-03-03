@@ -64,11 +64,11 @@ open VengefulFi.Ipld.Convert
 
 // encoding conversions (base64)
 
-let plainCidfromBase64 s =
-    rawCidFromBase64 s |> PlainContentId
+let plainCidfromBase64 s = rawCidFromBase64 s |> PlainContentId
 
 let plainCidtoBase64 i =
     let (PlainContentId r) = i
+
     rawCidToBase64 r
 
 let encryptedCidfromBase64 s =
@@ -76,16 +76,17 @@ let encryptedCidfromBase64 s =
 
 let encryptedCidtoBase64 i =
     let (EncryptedContentId r) = i
+
     rawCidToBase64 r
 
 
 // encoding conversions (hexstr)
 
-let plainCidfromHexStr s =
-    rawCidFromHexStr s |> PlainContentId
+let plainCidfromHexStr s = rawCidFromHexStr s |> PlainContentId
 
 let plainCidtoHexStr i =
     let (PlainContentId r) = i
+
     rawCidToHexStr r
 
 let encryptedCidfromHexStr s =
@@ -93,4 +94,5 @@ let encryptedCidfromHexStr s =
 
 let encryptedCidtoHexStr i =
     let (EncryptedContentId r) = i
+
     rawCidToHexStr r

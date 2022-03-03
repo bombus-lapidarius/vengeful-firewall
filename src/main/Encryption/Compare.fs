@@ -61,8 +61,6 @@ SOFTWARE.
 open VengefulFi.Ipld.Compare
 
 
-// compare two cids by extracting and comparing their underlying byte arrays
-
 let comparePlainCids x y : bool =
     let (PlainContentId a) = x
     let (PlainContentId b) = y

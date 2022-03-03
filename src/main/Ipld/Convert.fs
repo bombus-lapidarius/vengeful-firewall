@@ -90,7 +90,7 @@ let private uInt32FromVarint (a: byte []) : uint32 * int =
     with
     | :? System.OverflowException -> raise VarintOverflowException
 
-let private uInt32toVarint (u: uint32) : byte [] =
+let private uInt32ToVarint (u: uint32) : byte [] =
     let mutable a = Array.zeroCreate<byte> 5 // should always suffice for uint32
     let s = new System.Span<byte>(a)
 
@@ -133,25 +133,23 @@ let composeBinaryCid (genericContentId: GenericContentIdFuture) : RawContentId =
     let (Digest digest) = genericContentId.Hash.Digest
 
     [ uint32 genericContentId.CidVersion
-      |> uInt32toVarint
+      |> uInt32ToVarint
       uint32 genericContentId.Multicodec
-      |> uInt32toVarint
+      |> uInt32ToVarint
       uint32 genericContentId.Hash.Name
-      |> uInt32toVarint
+      |> uInt32ToVarint
       uint32 genericContentId.Hash.Size
-      |> uInt32toVarint
+      |> uInt32ToVarint
       digest ]
     |> Array.concat
     |> RawContentId
 
 
-// move data from generic dotnet stream objects to byte arrays
 let fromStream (rawStream: Stream) : byte [] =
     use ms = new MemoryStream(256)
     rawStream.CopyTo(ms) // this should adjust the MemoryStream size as needed
     ms.ToArray()
 
-// move data from byte arrays to generic dotnet stream objects
 let toStream (rb: byte []) : Stream = new MemoryStream(rb) :> Stream // upcast
 
 
@@ -161,11 +159,12 @@ let rawCidFromBase64 s =
     try
         System.Convert.FromBase64String(s) |> RawContentId
     with
-    // the string may contain illegal characters, pass on the offending string
+    // the string may contain illegal characters
     | _ -> raise (Base64ConversionFailedException s)
 
 let rawCidToBase64 r =
     let (RawContentId a) = r
+
     System.Convert.ToBase64String(a)
 
 
@@ -175,9 +174,10 @@ let rawCidFromHexStr (s: string) =
     try
         System.Convert.FromHexString(s) |> RawContentId
     with
-    // the string may contain illegal characters, pass on the offending string
+    // the string may contain illegal characters
     | _ -> raise (HexStrConversionFailedException s)
 
 let rawCidToHexStr r =
     let (RawContentId a) = r
+
     System.Convert.ToHexString(a)
