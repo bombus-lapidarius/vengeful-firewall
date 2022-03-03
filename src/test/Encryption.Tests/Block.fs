@@ -65,10 +65,12 @@ open NUnit.Framework
 
 
 open VengefulFi.Ipld
+open VengefulFi.Ipld.Convert
 
 
 open VengefulFi.Encryption
-open VengefulFi.Encryption.Conversions
+open VengefulFi.Encryption.Compare
+open VengefulFi.Encryption.Convert
 open VengefulFi.Encryption.CryptoEngines
 open VengefulFi.Encryption.Block
 
@@ -82,7 +84,7 @@ open VengefulFi.Encryption.Tests.TestMappings
 // extract
 let keys =
     List.map
-        fromBase64
+        System.Convert.FromBase64String
         [ "DAE4Cc4GYhvuEBhA5Uh6Cg==" // aes128
           "651/DGi4LoG4pqbCn7GiGw==" // aes128
           "JOC0K+KGVYkrvCLQvRLnDQ==" // aes128
