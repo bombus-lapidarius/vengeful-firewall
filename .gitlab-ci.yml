@@ -25,6 +25,7 @@ build Encryption for win10-x64:
     paths:
       - src/main/Encryption/bin/Release/
       - src/main/Encryption/obj/Release/
+
 build Ipld for linux-x64:
   stage: build
   script:
@@ -41,6 +42,24 @@ build Ipld for win10-x64:
     paths:
       - src/main/Ipld/bin/Release/
       - src/main/Ipld/obj/Release/
+
+build UnixFS for linux-x64:
+  stage: build
+  script:
+    - dotnet build -r linux-x64 -c Release ./src/main/UnixFS/VengefulFi.UnixFS.fsproj
+  artifacts:
+    paths:
+      - src/main/UnixFS/bin/Release/
+      - src/main/UnixFS/obj/Release/
+build UnixFS for win10-x64:
+  stage: build
+  script:
+    - dotnet build -r win10-x64 -c Release ./src/main/UnixFS/VengefulFi.UnixFS.fsproj
+  artifacts:
+    paths:
+      - src/main/UnixFS/bin/Release/
+      - src/main/UnixFS/obj/Release/
+
 build WebApi for linux-x64:
   stage: build
   script:
@@ -93,6 +112,7 @@ test Encryption:
     paths:
       - src/main/Encryption/bin/Release/
       - src/main/Encryption/obj/Release/
+
 test Ipld:
   stage: test
   script:
