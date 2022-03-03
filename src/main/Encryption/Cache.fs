@@ -68,6 +68,7 @@ let getFromCache
     (cache: PlainDataCache)
     (plainCid: PlainContentId)
     : PlainContent option =
+
     match cache with
     | None -> None
     | Some (myCache) -> None // TODO: create an actual implementation
@@ -76,7 +77,8 @@ let putIntoCache
     (cache: PlainDataCache)
     (plainCid: PlainContentId)
     (plainData: PlainContent)
-    =
+    : unit =
+
     match cache with
     | None -> ()
     | Some (myCache) -> () // TODO: store and return unit

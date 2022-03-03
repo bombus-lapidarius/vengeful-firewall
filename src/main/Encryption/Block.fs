@@ -133,13 +133,16 @@ let decryptGet
     (plainCid: PlainContentId)
     : PlainContent =
 
-    match Cache.getFromCache cache plainCid with // PlainContent
-    | None -> // we need to fetch the data from IPFS
-        fetchCid cipher key plainCid // returns EncryptedContentId
-        |> getRaw // returns EncryptedContent
-        // TODO: hash here to verify that the encrypted content returned matches the fetched cid?
-        |> (decryptBlock cipher key) // returns PlainContent
-    | Some (result) -> result
+    let optionalPlainContent = (Cache.getFromCache cache) plainCid
+
+    match optionalPlainContent with
+    | None ->
+        // we need to fetch the data from IPFS
+        fetchCid cipher key plainCid
+        |> getRaw
+        // TODO: hash here to verify that the content matches the fetched cid?
+        |> decryptBlock cipher key
+    | Some (plainContent) -> plainContent
 
 let encryptPut
     (putRaw: PutRawType)
@@ -151,14 +154,19 @@ let encryptPut
     (plainContent: PlainContent)
     : PlainContentId =
 
+    // deconstruct
+    let (PlainContent data) = plainContent
+
     // we can't pass on plaintext to our IPFS node
     // instead, we have to calculate the plaintext cid ourselves
-    let (PlainContent input) = plainContent // deconstruct
-    let plainCid = PlainContentId(calculateCid input)
-    Cache.putIntoCache cache plainCid plainContent // returns unit
+    let plainCid = calculateCid data |> PlainContentId
 
-    encryptBlock cipher key plainContent // returns EncryptedContent
-    |> putRaw // returns EncryptedContentId
-    |> (storeCid cipher key) plainCid // returns unit
+    (Cache.putIntoCache cache) plainCid plainContent
 
-    plainCid // TODO: hash here to verify the cid returned by the underlying IPFS node?
+    // encrypt and store in IPFS
+    (encryptBlock cipher key) plainContent
+    |> putRaw
+    |> storeCid cipher key plainCid
+
+    // TODO: hash here to verify the cid returned by the underlying IPFS node?
+    plainCid
