@@ -73,10 +73,10 @@ let verifyHashSize (name: HashName) (size: uint32) =
 
 let verifyCidVersionAndCodec (version: CidVersion) (codec: Multicodec) =
     match (version, codec) with // list all valid combinations
-    | (CidVersion.Cid0, Multicodec.DagPb) -> ()
+    | (CidVersion.Cid0, Multicodec.DagProtoBuf) -> ()
     | (CidVersion.Cid1, Multicodec.DagCbor) -> ()
     | (CidVersion.Cid1, Multicodec.DagJson) -> ()
-    | (CidVersion.Cid1, Multicodec.DagPb) -> ()
+    | (CidVersion.Cid1, Multicodec.DagProtoBuf) -> ()
     // this should be tried last
     | _ -> raise (CidVersionAndCodecMismatchException(version, codec))
 

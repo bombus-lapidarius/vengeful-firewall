@@ -1,4 +1,4 @@
-module VengefulFi.Ipld.Codec.DagPb
+module VengefulFi.Ipld.Codec.DagProtoBuf
 
 
 (* #############################################################################
@@ -58,15 +58,30 @@ SOFTWARE.
 ############################################################################# *)
 
 
-open VengefulFi.Ipld
+open ProtoBuf
 
 
-type PbLink =
-    { Hash: HashName * uint32 * Digest
-      Name: string // TODO: ensure utf-8
-      TargetSize: uint64 }
+// TODO: optional (see dag-pb spec)
+// TODO: repeated -> List<PBLink> OK?
 
 
-type PbNode =
-    { Links: (HashName * uint32 * Digest) list // TODO: raw hash only?
-      Data: byte [] }
+[<ProtoContract>]
+[<ProtoInclude(63, "PBNode")>]
+type private PBLink(hash, name, tSize) =
+    [<ProtoMember(1)>]
+    member val Hash: byte array = hash with get, set
+
+    [<ProtoMember(2)>]
+    member val Name: string = name with get, set
+
+    [<ProtoMember(3)>]
+    member val Tsize: uint64 = tSize with get, set
+
+
+[<ProtoContract>]
+type private PBNode(data, links) =
+    [<ProtoMember(1)>]
+    member val Data: byte array = data with get, set
+
+    [<ProtoMember(2)>]
+    member val Links: List<PBLink> = links with get, set

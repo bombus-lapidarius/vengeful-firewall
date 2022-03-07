@@ -64,7 +64,7 @@ open System.IO
 type Multicodec =
     | DagCbor = 0x71ul
     | DagJson = 0x0129ul
-    | DagPb = 0x70ul
+    | DagProtoBuf = 0x70ul
 
 type CidVersion =
     | Cid0 = 0x00ul // TODO: this may be incorrect

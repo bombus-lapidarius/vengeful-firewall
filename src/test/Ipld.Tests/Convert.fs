@@ -99,56 +99,56 @@ let private makeCidMapping
 let cids: list<CidMapping> =
     [ makeCidMapping
           CidVersion.Cid1
-          Multicodec.DagPb
+          Multicodec.DagProtoBuf
           HashName.Sha256
           32ul
           "0DCC905C79DCC449A189D6E4733AFBBC81E1AD78EA800FA5BF6F20D51738533E"
           "017012200dcc905c79dcc449a189d6e4733afbbc81e1ad78ea800fa5bf6f20d51738533e"
       makeCidMapping
           CidVersion.Cid1
-          Multicodec.DagPb
+          Multicodec.DagProtoBuf
           HashName.Sha256
           32ul
           "11F4EBE2067798E21F76059CED01D7DB8BDB4AB8B422A0653E631DD485EADA37"
           "0170122011f4ebe2067798e21f76059ced01d7db8bdb4ab8b422a0653e631dd485eada37"
       makeCidMapping
           CidVersion.Cid1
-          Multicodec.DagPb
+          Multicodec.DagProtoBuf
           HashName.Sha256
           32ul
           "207C4933087FD02F35AD2B6751346B7744126C04BE9BC1BD9F020A388D7AB083"
           "01701220207c4933087fd02f35ad2b6751346b7744126c04be9bc1bd9f020a388d7ab083"
       makeCidMapping
           CidVersion.Cid1
-          Multicodec.DagPb
+          Multicodec.DagProtoBuf
           HashName.Sha256
           32ul
           "77BEBB9DF538F9DB9CE4C5F4E64EE2591CE7A9875A8C637E52955D4EB6646CFF"
           "0170122077bebb9df538f9db9ce4c5f4e64ee2591ce7a9875a8c637e52955d4eb6646cff"
       makeCidMapping
           CidVersion.Cid1
-          Multicodec.DagPb
+          Multicodec.DagProtoBuf
           HashName.Sha256
           32ul
           "9C069666FDA1E33436BE02003EC5AE81C51429D6B68B312ECD0AA7B681BDB993"
           "017012209c069666fda1e33436be02003ec5ae81c51429d6b68b312ecd0aa7b681bdb993"
       makeCidMapping
           CidVersion.Cid1
-          Multicodec.DagPb
+          Multicodec.DagProtoBuf
           HashName.Sha256
           32ul
           "9C1A6EE09BFEEFF8B0B9C45BDE131F12B36E6396F38E98AF26DC6525972EC1F1"
           "017012209c1a6ee09bfeeff8b0b9c45bde131f12b36e6396f38e98af26dc6525972ec1f1"
       makeCidMapping
           CidVersion.Cid1
-          Multicodec.DagPb
+          Multicodec.DagProtoBuf
           HashName.Sha256
           32ul
           "D2F321C51E6ACDC9465DA426D2DC9A57BF82EDE2FF22A378B70992FE895259CA"
           "01701220d2f321c51e6acdc9465da426d2dc9a57bf82ede2ff22a378b70992fe895259ca"
       makeCidMapping
           CidVersion.Cid1
-          Multicodec.DagPb
+          Multicodec.DagProtoBuf
           HashName.Sha256
           32ul
           "D55EEB50DF176B41BF5D8F0B93C18FFBEB53BC704440A206702BCFEB88FA9370"

@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <PackageReference Include="VarInt" Version="1.2.2" />
+    <PackageReference Include="protobuf-net" Version="3.0.101" />
   </ItemGroup>
 
   <ItemGroup>
@@ -17,7 +18,7 @@
     <Compile Include="ContentId.fs" />
     <Compile Include="Codec.DagCbor.fs" />
     <Compile Include="Codec.DagJson.fs" />
-    <Compile Include="Codec.DagPb.fs" />
+    <Compile Include="Codec.DagProtoBuf.fs" />
     <Compile Include="Codec.fs" />
   </ItemGroup>
 
