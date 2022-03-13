@@ -1,4 +1,4 @@
-module VengefulFi.Ipld.Codec.DagProtoBuf
+module VengefulFi.Ipld.DataModel.Trivial
 
 
 (* #############################################################################
@@ -58,85 +58,12 @@ SOFTWARE.
 ############################################################################# *)
 
 
-open ProtoBuf
+// a trivial implementation for nodes of kind Null
+type Null() =
+    inherit Base()
 
+    interface INode with
+        member this.Kind = Kind.Null
 
-open VengefulFi.Ipld
-
-
-// TODO: optional (see dag-pb spec)
-// TODO: repeated -> List<PBLink> OK?
-
-
-[<ProtoContract>]
-[<ProtoInclude(63, "PBNodeRepr")>]
-type private PBLinkRepr(hash, name, targetSize) =
-    [<ProtoMember(1)>]
-    member val Hash: byte array = hash with get, set
-
-    [<ProtoMember(2)>]
-    member val Name: string = name with get, set
-
-    [<ProtoMember(3)>]
-    member val TargetSize: uint64 = targetSize with get, set
-
-
-[<ProtoContract>]
-type private PBNodeRepr(data, linkList) =
-    [<ProtoMember(1)>]
-    member val Data: byte array = data with get, set
-
-    [<ProtoMember(2)>]
-    member val LinkList: List<PBLinkRepr> = linkList with get, set
-
-
-type PBLinkHash() =
-    inherit DataModel.Base()
-
-    interface DataModel.INode with
-        member this.Kind = DataModel.Kind.Link
-
-        member this.IsNull = false
-
-type PBLinkName() =
-    inherit DataModel.Base()
-
-    interface DataModel.INode with
-        member this.Kind = DataModel.Kind.String
-
-        member this.IsNull = false
-
-type PBLinkTargetSize() =
-    inherit DataModel.Base()
-
-    interface DataModel.INode with
-        member this.Kind = DataModel.Kind.Integer
-
-        member this.IsNull = false
-
-
-type PBLink() =
-    inherit DataModel.Base()
-
-    interface DataModel.INode with
-        member this.Kind = DataModel.Kind.Map
-
-        member this.IsNull = false
-
-
-type PBLinkList() =
-    inherit DataModel.Base()
-
-    interface DataModel.INode with
-        member this.Kind = DataModel.Kind.List
-
-        member this.IsNull = false
-
-
-type PBNode() =
-    inherit DataModel.Base()
-
-    interface DataModel.INode with
-        member this.Kind = DataModel.Kind.Map
-
-        member this.IsNull = false
+        member this.AsNull = ()
+        member this.IsNull = true
