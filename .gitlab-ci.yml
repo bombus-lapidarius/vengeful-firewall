@@ -60,47 +60,47 @@ build UnixFS for win10-x64:
       - src/main/UnixFS/bin/Release/
       - src/main/UnixFS/obj/Release/
 
-build WebApi for linux-x64:
+build RpcApi for linux-x64:
   stage: build
   script:
-    - dotnet build -r linux-x64 -c Release ./src/main/WebApi/VengefulFi.WebApi.csproj
+    - dotnet build -r linux-x64 -c Release ./src/main/RpcApi/VengefulFi.RpcApi.csproj
   artifacts:
     paths:
-      - src/main/WebApi/bin/Release/
-      - src/main/WebApi/obj/Release/
-build WebApi for win10-x64:
+      - src/main/RpcApi/bin/Release/
+      - src/main/RpcApi/obj/Release/
+build RpcApi for win10-x64:
   stage: build
   script:
-    - dotnet build -r win10-x64 -c Release ./src/main/WebApi/VengefulFi.WebApi.csproj
+    - dotnet build -r win10-x64 -c Release ./src/main/RpcApi/VengefulFi.RpcApi.csproj
   artifacts:
     paths:
-      - src/main/WebApi/bin/Release/
-      - src/main/WebApi/obj/Release/
+      - src/main/RpcApi/bin/Release/
+      - src/main/RpcApi/obj/Release/
 
 
 # run builds and tests in parallel for all components
-publish WebApi for linux-x64:
+publish RpcApi for linux-x64:
   stage: publish
   # create a single executable native binary
   script:
-    - "dotnet publish -r linux-x64 -c Release /p:PublishSingleFile=true ./src/main/WebApi/VengefulFi.WebApi.csproj"
+    - "dotnet publish -r linux-x64 -c Release /p:PublishSingleFile=true ./src/main/RpcApi/VengefulFi.RpcApi.csproj"
   dependencies:
-    - "build WebApi for linux-x64"
+    - "build RpcApi for linux-x64"
   artifacts:
     paths:
-      - src/main/WebApi/bin/Release/
-      - src/main/WebApi/obj/Release/
-publish WebApi for win10-x64:
+      - src/main/RpcApi/bin/Release/
+      - src/main/RpcApi/obj/Release/
+publish RpcApi for win10-x64:
   stage: publish
   # create a single executable native binary
   script:
-    - "dotnet publish -r win10-x64 -c Release /p:PublishSingleFile=true ./src/main/WebApi/VengefulFi.WebApi.csproj"
+    - "dotnet publish -r win10-x64 -c Release /p:PublishSingleFile=true ./src/main/RpcApi/VengefulFi.RpcApi.csproj"
   dependencies:
-    - "build WebApi for win10-x64"
+    - "build RpcApi for win10-x64"
   artifacts:
     paths:
-      - src/main/WebApi/bin/Release/
-      - src/main/WebApi/obj/Release/
+      - src/main/RpcApi/bin/Release/
+      - src/main/RpcApi/obj/Release/
 
 
 # run builds and tests in parallel for all components
@@ -124,12 +124,12 @@ test Ipld:
 
 
 # run builds and tests in parallel for all components
-# deploy WebApi for linux-x64:
+# deploy RpcApi for linux-x64:
   # stage: deploy
   # script:
     # - TODO
 # run builds and tests in parallel for all components
-# deploy WebApi for win10-x64:
+# deploy RpcApi for win10-x64:
   # stage: deploy
   # script:
     # - TODO
