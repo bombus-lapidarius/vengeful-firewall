@@ -90,41 +90,88 @@ type private PBNodeRepr(data, linkList) =
     member val LinkList: List<PBLinkRepr> = linkList with get, set
 
 
-type PBLinkHash() =
+type private PBLinkHash(backingStorage: PBLinkRepr) =
     inherit DataModel.Base()
+
+    member this.Update(newValue: RawContentId) =
+        let (RawContentId bareHash) = newValue
+
+        backingStorage.Hash <- bareHash
+
+    member this.Update(newValue: GenericContentIdFuture) =
+        let (RawContentId bareHash) = newValue |> Convert.composeBinaryCid
+
+        backingStorage.Hash <- bareHash
 
     interface DataModel.INode with
         member this.Kind = DataModel.Kind.Link
 
+        member this.AsGenericContentId =
+            backingStorage.Hash
+            |> RawContentId
+            |> Convert.parseBinaryCid
+
+        member this.AsRawContentId = backingStorage.Hash |> RawContentId
+
         member this.IsNull = false
 
-type PBLinkName() =
+type private PBLinkName(backingStorage: PBLinkRepr) =
     inherit DataModel.Base()
+
+    member this.Update(newValue: string) = backingStorage.Name <- newValue
 
     interface DataModel.INode with
         member this.Kind = DataModel.Kind.String
 
+        member this.AsString = backingStorage.Name
+
         member this.IsNull = false
 
-type PBLinkTargetSize() =
+type private PBLinkTargetSize(backingStorage: PBLinkRepr) =
     inherit DataModel.Base()
+
+    member this.Update(newValue: uint64) = backingStorage.TargetSize <- newValue
 
     interface DataModel.INode with
         member this.Kind = DataModel.Kind.Integer
 
+        member this.AsInteger = bigint backingStorage.TargetSize // TODO
+
         member this.IsNull = false
 
 
-type PBLink() =
+type PBLink(hash: RawContentId, name: string, targetSize: uint64) =
     inherit DataModel.Base()
+
+    // deconstruct, this shouldn't require any backing storage
+    let (RawContentId bareHash) = hash
+
+    // use the protobuf representation to store our data
+    let repr = PBLinkRepr(bareHash, name, targetSize)
+
+    // provide the child nodes with a handle to our data
+    let hashNode = PBLinkHash(repr)
+    let nameNode = PBLinkName(repr)
+    let targetSizeNode = PBLinkTargetSize(repr)
+
+    member this.Hash = hashNode :> DataModel.INode
+    member this.Name = nameNode :> DataModel.INode
+    member this.TargetSize = targetSizeNode :> DataModel.INode
 
     interface DataModel.INode with
         member this.Kind = DataModel.Kind.Map
 
         member this.IsNull = false
 
+        member this.LookupByString s =
+            match s with
+            | "Hash" -> Some(this.Hash)
+            | "Name" -> Some(this.Name)
+            | "TargetSize" -> Some(this.TargetSize)
+            | _ -> None
 
-type PBLinkList() =
+
+type private PBLinkList() =
     inherit DataModel.Base()
 
     interface DataModel.INode with
