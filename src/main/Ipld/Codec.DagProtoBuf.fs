@@ -58,6 +58,9 @@ SOFTWARE.
 ############################################################################# *)
 
 
+open System.Collections
+
+
 open ProtoBuf
 
 
@@ -171,19 +174,67 @@ type PBLink(hash: RawContentId, name: string, targetSize: uint64) =
             | _ -> None
 
 
-type private PBLinkList() =
+type private PBNodeData(backingStorage: PBNodeRepr) =
+    inherit DataModel.Base()
+
+    member this.Update(newValue: RawContent) =
+        let a = newValue |> Convert.fromStream
+
+        backingStorage.Data <- a
+
+    interface DataModel.INode with
+        member this.Kind = DataModel.Kind.Bytes
+
+        member this.AsRawContent = backingStorage.Data |> Convert.toStream
+
+        member this.IsNull = false
+
+
+type private PBNodeLinkList(backingStorage: Generic.List<PBLink>) =
     inherit DataModel.Base()
 
     interface DataModel.INode with
         member this.Kind = DataModel.Kind.List
 
+        // TODO: list
+
         member this.IsNull = false
 
+// TODO: lookup
 
-type PBNode() =
+
+type PBNode(data: byte array, linkList: Generic.List<PBLink>, copyList: bool) =
     inherit DataModel.Base()
+
+    let linkListRepr =
+        if copyList then
+            let linkListReprInit = Generic.List<PBLink>()
+
+            // populate the generic dotnet list type using imperative code
+            for item in linkList do
+                linkListReprInit.Add(item)
+
+            linkListReprInit
+        else
+            linkList
+
+    // use the protobuf representation to store our data
+    let repr = PBNodeRepr(data, []) // TODO: "List surrogate" (for protobuf)
+
+    // provide the child nodes with a handle to our data
+    let dataNode = PBNodeData(repr)
+    let linkListNode = PBNodeLinkList(linkListRepr)
+
+    member this.Data = dataNode :> DataModel.INode
+    member this.LinkList = linkListNode :> DataModel.INode
 
     interface DataModel.INode with
         member this.Kind = DataModel.Kind.Map
 
         member this.IsNull = false
+
+        member this.LookupByString s =
+            match s with
+            | "Data" -> Some(this.Data)
+            | "LinkList" -> Some(this.LinkList)
+            | _ -> None
