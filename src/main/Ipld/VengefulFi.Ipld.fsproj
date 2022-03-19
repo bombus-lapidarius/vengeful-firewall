@@ -17,7 +17,7 @@
     <Compile Include="Convert.fs" />
     <Compile Include="ContentId.fs" />
     <Compile Include="DataModel.fs" />
-    <Compile Include="Trivial.fs" />
+    <Compile Include="DataModel.Trivial.fs" />
     <Compile Include="Codec.fs" />
     <Compile Include="Codec.DagCbor.fs" />
     <Compile Include="Codec.DagJson.fs" />
