@@ -100,10 +100,10 @@ type INode =
 
     abstract member IsNull: bool
 
-    abstract member LookupByString: string -> INode option
+    abstract member LookupByString: string -> INode
     //abstract member LookupByNode
     //abstract member LookupBySegment
-    abstract member LookupByIndex: uint64 -> INode option
+    abstract member LookupByIndex: uint64 -> INode
 
 //abstract member IsAbsent: bool
 

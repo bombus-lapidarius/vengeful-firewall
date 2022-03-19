@@ -152,10 +152,6 @@ type PBLink(hash: RawContentId, name: string, targetSize: uint64) as this =
     [<ProtoMember(3)>]
     member val TargetSizeRepr: uint64 = targetSize with get, set
 
-    member this.Hash = hashNode :> DataModel.INode
-    member this.Name = nameNode :> DataModel.INode
-    member this.TargetSize = targetSizeNode :> DataModel.INode
-
     interface IPBLinkInit with
         member this.Hash
             with get () = this.HashRepr
@@ -176,10 +172,10 @@ type PBLink(hash: RawContentId, name: string, targetSize: uint64) as this =
 
         member this.LookupByString s =
             match s with
-            | "Hash" -> Some(this.Hash)
-            | "Name" -> Some(this.Name)
-            | "TargetSize" -> Some(this.TargetSize)
-            | _ -> None
+            | "Hash" -> hashNode :> DataModel.INode
+            | "Name" -> nameNode :> DataModel.INode
+            | "TargetSize" -> targetSizeNode :> DataModel.INode
+            | _ -> DataModel.Trivial.Null() :> DataModel.INode
 
 
 type private IPBNodeInit =
@@ -251,9 +247,6 @@ type PBNode(data: byte array, linkList: Generic.List<PBLink>, deepCopy: bool) as
     [<ProtoMember(2)>]
     member val LinkListRepr: Generic.List<PBLink> = linkListRepr with get, set
 
-    member this.Data = dataNode :> DataModel.INode
-    member this.LinkList = linkListNode :> DataModel.INode
-
     interface IPBNodeInit with
         member this.Data
             with get () = this.DataRepr
@@ -270,6 +263,6 @@ type PBNode(data: byte array, linkList: Generic.List<PBLink>, deepCopy: bool) as
 
         member this.LookupByString s =
             match s with
-            | "Data" -> Some(this.Data)
-            | "LinkList" -> Some(this.LinkList)
-            | _ -> None
+            | "Data" -> dataNode :> DataModel.INode
+            | "LinkList" -> linkListNode :> DataModel.INode
+            | _ -> DataModel.Trivial.Null() :> DataModel.INode
