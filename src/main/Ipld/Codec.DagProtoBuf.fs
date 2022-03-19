@@ -59,6 +59,7 @@ SOFTWARE.
 
 
 open System.Collections
+open System.Linq
 
 
 open ProtoBuf
@@ -71,29 +72,13 @@ open VengefulFi.Ipld
 // TODO: repeated -> List<PBLink> OK?
 
 
-[<ProtoContract>]
-[<ProtoInclude(63, "PBNodeRepr")>]
-type private PBLinkRepr(hash, name, targetSize) =
-    [<ProtoMember(1)>]
-    member val Hash: byte array = hash with get, set
-
-    [<ProtoMember(2)>]
-    member val Name: string = name with get, set
-
-    [<ProtoMember(3)>]
-    member val TargetSize: uint64 = targetSize with get, set
+type private IPBLinkInit =
+    abstract member Hash: byte array with get, set
+    abstract member Name: string with get, set
+    abstract member TargetSize: uint64 with get, set
 
 
-[<ProtoContract>]
-type private PBNodeRepr(data, linkList) =
-    [<ProtoMember(1)>]
-    member val Data: byte array = data with get, set
-
-    [<ProtoMember(2)>]
-    member val LinkList: List<PBLinkRepr> = linkList with get, set
-
-
-type private PBLinkHash(backingStorage: PBLinkRepr) =
+type private PBLinkHash(backingStorage: IPBLinkInit) =
     inherit DataModel.Base()
 
     member this.Update(newValue: RawContentId) =
@@ -118,7 +103,7 @@ type private PBLinkHash(backingStorage: PBLinkRepr) =
 
         member this.IsNull = false
 
-type private PBLinkName(backingStorage: PBLinkRepr) =
+type private PBLinkName(backingStorage: IPBLinkInit) =
     inherit DataModel.Base()
 
     member this.Update(newValue: string) = backingStorage.Name <- newValue
@@ -130,7 +115,7 @@ type private PBLinkName(backingStorage: PBLinkRepr) =
 
         member this.IsNull = false
 
-type private PBLinkTargetSize(backingStorage: PBLinkRepr) =
+type private PBLinkTargetSize(backingStorage: IPBLinkInit) =
     inherit DataModel.Base()
 
     member this.Update(newValue: uint64) = backingStorage.TargetSize <- newValue
@@ -143,23 +128,46 @@ type private PBLinkTargetSize(backingStorage: PBLinkRepr) =
         member this.IsNull = false
 
 
-type PBLink(hash: RawContentId, name: string, targetSize: uint64) =
+[<ProtoContract>]
+[<ProtoInclude(63, "PBNodeRepr")>]
+type PBLink(hash: RawContentId, name: string, targetSize: uint64) as this =
     inherit DataModel.Base()
 
     // deconstruct, this shouldn't require any backing storage
     let (RawContentId bareHash) = hash
 
-    // use the protobuf representation to store our data
-    let repr = PBLinkRepr(bareHash, name, targetSize)
-
     // provide the child nodes with a handle to our data
-    let hashNode = PBLinkHash(repr)
-    let nameNode = PBLinkName(repr)
-    let targetSizeNode = PBLinkTargetSize(repr)
+    let hashNode = PBLinkHash(this :> IPBLinkInit)
+    let nameNode = PBLinkName(this :> IPBLinkInit)
+    let targetSizeNode = PBLinkTargetSize(this :> IPBLinkInit)
+
+    // use the protobuf representation to store our data
+
+    [<ProtoMember(1)>]
+    member val HashRepr: byte array = bareHash with get, set
+
+    [<ProtoMember(2)>]
+    member val NameRepr: string = name with get, set
+
+    [<ProtoMember(3)>]
+    member val TargetSizeRepr: uint64 = targetSize with get, set
 
     member this.Hash = hashNode :> DataModel.INode
     member this.Name = nameNode :> DataModel.INode
     member this.TargetSize = targetSizeNode :> DataModel.INode
+
+    interface IPBLinkInit with
+        member this.Hash
+            with get () = this.HashRepr
+            and set (value) = this.HashRepr <- value
+
+        member this.Name
+            with get () = this.NameRepr
+            and set (value) = this.NameRepr <- value
+
+        member this.TargetSize
+            with get () = this.TargetSizeRepr
+            and set (value) = this.TargetSizeRepr <- value
 
     interface DataModel.INode with
         member this.Kind = DataModel.Kind.Map
@@ -174,7 +182,12 @@ type PBLink(hash: RawContentId, name: string, targetSize: uint64) =
             | _ -> None
 
 
-type private PBNodeData(backingStorage: PBNodeRepr) =
+type private IPBNodeInit =
+    abstract member Data: byte array with get, set
+    abstract member LinkList: Generic.List<PBLink> with get, set
+
+
+type private PBNodeData(backingStorage: IPBNodeInit) =
     inherit DataModel.Base()
 
     member this.Update(newValue: RawContent) =
@@ -190,7 +203,7 @@ type private PBNodeData(backingStorage: PBNodeRepr) =
         member this.IsNull = false
 
 
-type private PBNodeLinkList(backingStorage: Generic.List<PBLink>) =
+type private PBNodeLinkList(backingStorage: IPBNodeInit) =
     inherit DataModel.Base()
 
     interface DataModel.INode with
@@ -203,30 +216,52 @@ type private PBNodeLinkList(backingStorage: Generic.List<PBLink>) =
 // TODO: lookup
 
 
-type PBNode(data: byte array, linkList: Generic.List<PBLink>, copyList: bool) =
+[<ProtoContract>]
+type PBNode(data: byte array, linkList: Generic.List<PBLink>, deepCopy: bool) as this =
     inherit DataModel.Base()
 
+    let dataRepr =
+        if deepCopy then
+            data.ToArray() // copies the individual elements
+        else
+            data
+
     let linkListRepr =
-        if copyList then
+        if deepCopy then
             let linkListReprInit = Generic.List<PBLink>()
 
             // populate the generic dotnet list type using imperative code
             for item in linkList do
+                // TODO: deep copy the individual elements too
                 linkListReprInit.Add(item)
 
             linkListReprInit
         else
             linkList
 
-    // use the protobuf representation to store our data
-    let repr = PBNodeRepr(data, []) // TODO: "List surrogate" (for protobuf)
-
     // provide the child nodes with a handle to our data
-    let dataNode = PBNodeData(repr)
-    let linkListNode = PBNodeLinkList(linkListRepr)
+    let dataNode = PBNodeData(this :> IPBNodeInit)
+    let linkListNode = PBNodeLinkList(this :> IPBNodeInit)
+
+    // use the protobuf representation to store our data
+
+    [<ProtoMember(1)>]
+    member val DataRepr: byte array = dataRepr with get, set
+
+    [<ProtoMember(2)>]
+    member val LinkListRepr: Generic.List<PBLink> = linkListRepr with get, set
 
     member this.Data = dataNode :> DataModel.INode
     member this.LinkList = linkListNode :> DataModel.INode
+
+    interface IPBNodeInit with
+        member this.Data
+            with get () = this.DataRepr
+            and set (value) = this.DataRepr <- value
+
+        member this.LinkList
+            with get () = this.LinkListRepr
+            and set (value) = this.LinkListRepr <- value
 
     interface DataModel.INode with
         member this.Kind = DataModel.Kind.Map
