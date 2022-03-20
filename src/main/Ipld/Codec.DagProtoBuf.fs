@@ -292,14 +292,20 @@ type PBNode(data: byte array, linkList: Generic.List<PBLink>) =
             else
                 data
 
-        let linkListRepr =
+        let linkListRepr: Generic.List<PBLink> =
             if deepCopy then
                 let linkListReprInit = Generic.List<PBLink>()
 
                 // populate the generic dotnet list type using imperative code
-                for item in linkList do
-                    // TODO: deep copy the individual elements too
-                    linkListReprInit.Add(item)
+                for item: PBLink in linkList do
+                    let hash = item.HashRepr |> RawContentId
+                    let name = item.NameRepr
+                    let targetSize = item.TargetSizeRepr
+
+                    linkListReprInit.Add(
+                        // deep copy
+                        PBLink.Create(hash, name, targetSize, true)
+                    )
 
                 linkListReprInit
             else
