@@ -108,6 +108,7 @@ type INode =
 //abstract member IsAbsent: bool
 
 
+exception NotInitialisedException
 exception UnsupportedOperationException of Kind
 
 
