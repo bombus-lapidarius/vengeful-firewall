@@ -243,7 +243,7 @@ type PBLink(hash: RawContentId, name: string, targetSize: uint64) =
                     | true, node -> node
                     | _ -> raise (Generic.KeyNotFoundException "TODO")
 
-                member self.get_Keys() = [ "Hash"; "Name"; "TargetSize" ]
+                member self.get_Keys() = [ "Hash"; "Name"; "TargetSize" ] :> seq<string>
 
                 member self.get_Values() =
                     self.get_Keys ()
@@ -268,7 +268,7 @@ type PBLink(hash: RawContentId, name: string, targetSize: uint64) =
                     let keys = self.get_Keys()
                     let collection = Seq.map mappingFun keys
 
-                    collection.GetEnumerator() }
+                    collection.GetEnumerator() :> System.Collections.IEnumerator }
 
 
 type private IPBNodeInit =
@@ -408,7 +408,7 @@ type PBNode(data: byte array, linkList: Generic.List<PBLink>) =
                     | true, node -> node
                     | _ -> raise (Generic.KeyNotFoundException "TODO")
 
-                member self.get_Keys() = [ "Data"; "LinkList" ]
+                member self.get_Keys() = [ "Data"; "LinkList" ] :> seq<string>
 
                 member self.get_Values() =
                     self.get_Keys ()
@@ -433,4 +433,4 @@ type PBNode(data: byte array, linkList: Generic.List<PBLink>) =
                     let keys = self.get_Keys()
                     let collection = Seq.map mappingFun keys
 
-                    collection.GetEnumerator() }
+                    collection.GetEnumerator() :> System.Collections.IEnumerator }
