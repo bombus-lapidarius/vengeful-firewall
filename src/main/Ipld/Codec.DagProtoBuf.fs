@@ -72,6 +72,9 @@ open VengefulFi.Ipld
 // TODO: repeated -> List<PBLink> OK?
 
 
+type private KVPairType = Generic.KeyValuePair<string, DataModel.INode>
+
+
 type private IPBLinkInit =
     abstract member Hash: byte array with get, set
     abstract member Name: string with get, set
@@ -123,7 +126,7 @@ type private PBLinkTargetSize(backingStorage: IPBLinkInit) =
     interface DataModel.INode with
         member this.Kind = DataModel.Kind.Integer
 
-        member this.AsInteger = bigint backingStorage.TargetSize // TODO
+        member this.AsUInt64 = backingStorage.TargetSize
 
         member this.IsNull = false
 
@@ -208,21 +211,64 @@ type PBLink(hash: RawContentId, name: string, targetSize: uint64) =
 
         member this.IsNull = false
 
-        member this.LookupByString s =
-            match s with
-            | "Hash" ->
-                match this.HashNode with
-                | Some (node) -> node :> DataModel.INode
-                | None -> raise DataModel.NotInitialisedException
-            | "Name" ->
-                match this.NameNode with
-                | Some (node) -> node :> DataModel.INode
-                | None -> raise DataModel.NotInitialisedException
-            | "TargetSize" ->
-                match this.TargetSizeNode with
-                | Some (node) -> node :> DataModel.INode
-                | None -> raise DataModel.NotInitialisedException
-            | _ -> DataModel.Trivial.Null() :> DataModel.INode
+        member this.AsDictionary =
+            // return an ad-hoc implementation
+            { new Generic.IReadOnlyDictionary<string, DataModel.INode> with
+                member self.TryGetValue(strKey, n: byref<DataModel.INode>) =
+                    match strKey with
+                    | "Hash" ->
+                        match this.HashNode with
+                        | Some (node) ->
+                            n <- (node :> DataModel.INode)
+                            true
+                        | None -> raise DataModel.NotInitialisedException
+                    | "Name" ->
+                        match this.NameNode with
+                        | Some (node) ->
+                            n <- (node :> DataModel.INode)
+                            true
+                        | None -> raise DataModel.NotInitialisedException
+                    | "TargetSize" ->
+                        match this.TargetSizeNode with
+                        | Some (node) ->
+                            n <- (node :> DataModel.INode)
+                            true
+                        | None -> raise DataModel.NotInitialisedException
+                    | _ ->
+                        n <- (DataModel.Trivial.Null() :> DataModel.INode)
+                        false
+
+                member self.get_Item(key: string) =
+                    match self.TryGetValue(key) with
+                    | true, node -> node
+                    | _ -> raise (Generic.KeyNotFoundException "TODO")
+
+                member self.get_Keys() = [ "Hash"; "Name"; "TargetSize" ]
+
+                member self.get_Values() =
+                    self.get_Keys ()
+                    |> Seq.map (fun key -> self.get_Item (key))
+
+                member self.get_Count() = 3 // hard-wire this
+
+                member self.ContainsKey(key: string) =
+                    self.get_Keys ()
+                    |> List.ofSeq
+                    |> List.contains key
+
+                member self.GetEnumerator() : Generic.IEnumerator<KVPairType> =
+                    let mappingFun key = KVPairType(key, self.get_Item(key))
+                    let keys = self.get_Keys()
+                    let collection = Seq.map mappingFun keys
+
+                    collection.GetEnumerator()
+
+                member self.GetEnumerator() : IEnumerator =
+                    let mappingFun key = KVPairType(key, self.get_Item(key))
+                    let keys = self.get_Keys()
+                    let collection = Seq.map mappingFun keys
+
+                    collection.GetEnumerator() }
 
 
 type private IPBNodeInit =
@@ -336,14 +382,55 @@ type PBNode(data: byte array, linkList: Generic.List<PBLink>) =
 
         member this.IsNull = false
 
-        member this.LookupByString s =
-            match s with
-            | "Data" ->
-                match this.DataNode with
-                | Some (node) -> node :> DataModel.INode
-                | None -> raise DataModel.NotInitialisedException
-            | "LinkList" ->
-                match this.LinkListNode with
-                | Some (node) -> node :> DataModel.INode
-                | None -> raise DataModel.NotInitialisedException
-            | _ -> DataModel.Trivial.Null() :> DataModel.INode
+        member this.AsDictionary =
+            // return an ad-hoc implementation
+            { new Generic.IReadOnlyDictionary<string, DataModel.INode> with
+                member self.TryGetValue(strKey, n: byref<DataModel.INode>) =
+                    match strKey with
+                    | "Data" ->
+                        match this.DataNode with
+                        | Some (node) ->
+                            n <- (node :> DataModel.INode)
+                            true
+                        | None -> raise DataModel.NotInitialisedException
+                    | "LinkList" ->
+                        match this.LinkListNode with
+                        | Some (node) ->
+                            n <- (node :> DataModel.INode)
+                            true
+                        | None -> raise DataModel.NotInitialisedException
+                    | _ ->
+                        n <- (DataModel.Trivial.Null() :> DataModel.INode)
+                        false
+
+                member self.get_Item(key: string) =
+                    match self.TryGetValue(key) with
+                    | true, node -> node
+                    | _ -> raise (Generic.KeyNotFoundException "TODO")
+
+                member self.get_Keys() = [ "Data"; "LinkList" ]
+
+                member self.get_Values() =
+                    self.get_Keys ()
+                    |> Seq.map (fun key -> self.get_Item (key))
+
+                member self.get_Count() = 2 // hard-wire this
+
+                member self.ContainsKey(key: string) =
+                    self.get_Keys ()
+                    |> List.ofSeq
+                    |> List.contains key
+
+                member self.GetEnumerator() : Generic.IEnumerator<KVPairType> =
+                    let mappingFun key = KVPairType(key, self.get_Item(key))
+                    let keys = self.get_Keys()
+                    let collection = Seq.map mappingFun keys
+
+                    collection.GetEnumerator()
+
+                member self.GetEnumerator() : IEnumerator =
+                    let mappingFun key = KVPairType(key, self.get_Item(key))
+                    let keys = self.get_Keys()
+                    let collection = Seq.map mappingFun keys
+
+                    collection.GetEnumerator() }

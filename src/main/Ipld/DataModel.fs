@@ -58,6 +58,9 @@ SOFTWARE.
 ############################################################################# *)
 
 
+open System.Collections
+
+
 open VengefulFi.Ipld
 
 
@@ -76,85 +79,231 @@ type Kind =
 
 // the common interface for all kinds of nodes
 type INode =
+    abstract member AsNull: unit
+    abstract member IsNull: bool
+
     abstract member Kind: Kind
 
+    abstract member IsAbsent: bool
+
     // access the node's underlying data
-    abstract member AsNull: unit
+
     abstract member AsBool: bool
-    abstract member AsInteger: bigint // TODO
-    abstract member AsFloat: double // TODO
+
+    abstract member AsSInt08: sbyte
+    abstract member AsSInt16: int16
+    abstract member AsSInt32: int32
+    abstract member AsSInt64: int64
+
+    abstract member AsUInt08: byte
+    abstract member AsUInt16: uint16
+    abstract member AsUInt32: uint32
+    abstract member AsUInt64: uint64
+
+    abstract member AsBigInt: bigint
+
+    abstract member AsSingle: single
+    abstract member AsDouble: double
 
     abstract member AsString: string
+
     abstract member AsRawContent: RawContent
 
-    // access the node's underlying data
-    abstract member AsCSharpList: System.Collections.Generic.List<INode>
-    abstract member AsFSharpList: INode list
-    // TODO: "as dict"
-
-    abstract member Length: uint64
-
-    // access the node's underlying data
     abstract member AsGenericContentId: GenericContentIdFuture
     abstract member AsRawContentId: RawContentId
 
-    abstract member IsNull: bool
+    abstract member AsList: Generic.IReadOnlyList<INode>
 
-    abstract member LookupByString: string -> INode
-    //abstract member LookupByNode
-    //abstract member LookupBySegment
-    abstract member LookupByIndex: uint64 -> INode
+    abstract member AsDictionary: Generic.IReadOnlyDictionary<string, INode>
 
-//abstract member IsAbsent: bool
+
+type INodeBuilder =
+    // instantiate a new tree of immutable nodes using the current builder state
+    abstract member ToNode: unit -> INode
+
+    // scalar value assignment
+
+    abstract member Assign: bool -> unit
+
+    abstract member Assign: sbyte -> unit
+    abstract member Assign: int16 -> unit
+    abstract member Assign: int32 -> unit
+    abstract member Assign: int64 -> unit
+
+    abstract member Assign: byte -> unit
+    abstract member Assign: uint16 -> unit
+    abstract member Assign: uint32 -> unit
+    abstract member Assign: uint64 -> unit
+
+    abstract member Assign: bigint -> unit
+
+    abstract member Assign: single -> unit
+    abstract member Assign: double -> unit
+
+    abstract member Assign: string -> unit
+
+    // binary data must be provided as a .NET stream
+    abstract member Assign: RawContent -> unit
+
+    // content id assignment
+    abstract member Assign: GenericContentIdFuture -> unit
+    abstract member Assign: RawContentId -> unit
+
+    // the current capacity of this collection
+    abstract member Capacity: unit -> uint
+
+    // the current number of elements in this collection
+    abstract member Length: unit -> uint
+
+    // set the minimum capacity of this collection
+    abstract member EnsureCapacity: uint -> uint
+
+    abstract member Append: INode -> unit
+    abstract member Extend: INode -> unit
+
+    abstract member Insert: uint * INode -> unit
+    abstract member Insert: string * INode -> unit
+
+    abstract member Update: uint * INode -> unit
+    abstract member Update: string * INode -> unit
+
+    abstract member Remove: uint -> unit
+    abstract member Remove: string -> unit
 
 
 exception NotInitialisedException
-exception UnsupportedOperationException of Kind
 
 
 type Base() =
     interface INode with
-        member this.Kind =
-            raise (UnsupportedOperationException Kind.Null)
-
         member this.AsNull =
-            raise (UnsupportedOperationException Kind.Null)
-
-        member this.AsBool =
-            raise (UnsupportedOperationException Kind.Null)
-
-        member this.AsInteger =
-            raise (UnsupportedOperationException Kind.Null)
-
-        member this.AsFloat =
-            raise (UnsupportedOperationException Kind.Null)
-
-        member this.AsString =
-            raise (UnsupportedOperationException Kind.Null)
-
-        member this.AsRawContent =
-            raise (UnsupportedOperationException Kind.Null)
-
-        member this.AsCSharpList =
-            raise (UnsupportedOperationException Kind.Null)
-
-        member this.AsFSharpList =
-            raise (UnsupportedOperationException Kind.Null)
-
-        member this.Length =
-            raise (UnsupportedOperationException Kind.Null)
-
-        member this.AsGenericContentId =
-            raise (UnsupportedOperationException Kind.Null)
-
-        member this.AsRawContentId =
-            raise (UnsupportedOperationException Kind.Null)
+            raise (
+                System.NotSupportedException
+                    "operation not supported by this implementation"
+            )
 
         member this.IsNull =
-            raise (UnsupportedOperationException Kind.Null)
+            raise (
+                System.NotSupportedException
+                    "operation not supported by this implementation"
+            )
 
-        member this.LookupByString s =
-            raise (UnsupportedOperationException Kind.Null)
+        member this.Kind =
+            raise (
+                System.NotSupportedException
+                    "operation not supported by this implementation"
+            )
 
-        member this.LookupByIndex id =
-            raise (UnsupportedOperationException Kind.Null)
+        member this.IsAbsent =
+            raise (
+                System.NotSupportedException
+                    "operation not supported by this implementation"
+            )
+
+        member this.AsBool =
+            raise (
+                System.NotSupportedException
+                    "operation not supported by this implementation"
+            )
+
+        member this.AsUInt08 =
+            raise (
+                System.NotSupportedException
+                    "operation not supported by this implementation"
+            )
+
+        member this.AsUInt16 =
+            raise (
+                System.NotSupportedException
+                    "operation not supported by this implementation"
+            )
+
+        member this.AsUInt32 =
+            raise (
+                System.NotSupportedException
+                    "operation not supported by this implementation"
+            )
+
+        member this.AsUInt64 =
+            raise (
+                System.NotSupportedException
+                    "operation not supported by this implementation"
+            )
+
+        member this.AsSInt08 =
+            raise (
+                System.NotSupportedException
+                    "operation not supported by this implementation"
+            )
+
+        member this.AsSInt16 =
+            raise (
+                System.NotSupportedException
+                    "operation not supported by this implementation"
+            )
+
+        member this.AsSInt32 =
+            raise (
+                System.NotSupportedException
+                    "operation not supported by this implementation"
+            )
+
+        member this.AsSInt64 =
+            raise (
+                System.NotSupportedException
+                    "operation not supported by this implementation"
+            )
+
+        member this.AsBigInt =
+            raise (
+                System.NotSupportedException
+                    "operation not supported by this implementation"
+            )
+
+        member this.AsSingle =
+            raise (
+                System.NotSupportedException
+                    "operation not supported by this implementation"
+            )
+
+        member this.AsDouble =
+            raise (
+                System.NotSupportedException
+                    "operation not supported by this implementation"
+            )
+
+        member this.AsString =
+            raise (
+                System.NotSupportedException
+                    "operation not supported by this implementation"
+            )
+
+        member this.AsGenericContentId =
+            raise (
+                System.NotSupportedException
+                    "operation not supported by this implementation"
+            )
+
+        member this.AsRawContent =
+            raise (
+                System.NotSupportedException
+                    "operation not supported by this implementation"
+            )
+
+        member this.AsRawContentId =
+            raise (
+                System.NotSupportedException
+                    "operation not supported by this implementation"
+            )
+
+        member this.AsList =
+            raise (
+                System.NotSupportedException
+                    "operation not supported by this implementation"
+            )
+
+        member this.AsDictionary =
+            raise (
+                System.NotSupportedException
+                    "operation not supported by this implementation"
+            )

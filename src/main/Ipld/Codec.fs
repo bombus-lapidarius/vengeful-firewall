@@ -56,3 +56,38 @@ SOFTWARE.
 
 
 ############################################################################# *)
+
+
+open VengefulFi.Ipld
+
+
+[<AllowNullLiteral>]
+type IDecoder =
+    abstract member Exec: DataModel.INodeBuilder -> byte [] -> DataModel.INode
+
+
+[<AllowNullLiteral>]
+type IEncoder =
+    abstract member Exec: DataModel.INode -> byte []
+
+
+module Actions =
+    [<CompiledName("Decode")>]
+    let decode
+        (decoder: IDecoder)
+        (builder: DataModel.INodeBuilder)
+        (data: byte [])
+        : DataModel.INode =
+
+        match decoder with
+        | null ->
+            raise (System.ArgumentNullException "the decoder must not be null")
+        | _ -> decoder.Exec builder data
+
+
+    [<CompiledName("Encode")>]
+    let encode (encoder: IEncoder) (node: DataModel.INode) : byte [] =
+        match encoder with
+        | null ->
+            raise (System.ArgumentNullException "the encoder must not be null")
+        | _ -> encoder.Exec node

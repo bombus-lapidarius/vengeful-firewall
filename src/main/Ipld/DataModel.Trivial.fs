@@ -67,3 +67,5 @@ type Null() =
 
         member this.AsNull = ()
         member this.IsNull = true
+
+        member this.IsAbsent = false
