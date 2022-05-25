@@ -1,0 +1,7 @@
+# we do not want to track build artifacts here
+build/*
+!build/.keep
+
+# we do not want to track build tools here
+.python-venv/*
+!.python-venv/.keep
