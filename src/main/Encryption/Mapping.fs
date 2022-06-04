@@ -61,6 +61,14 @@ SOFTWARE.
 open System.Collections
 
 
+// for convenience
+
+type private DagNodeRef = byte [] * EncryptedContentId
+
+type private DecryptionType = byte [] -> EncryptedContent -> PlainContent
+type private EncryptionType = byte [] -> PlainContent -> EncryptedContent
+
+
 // TODO: extend at run time (using attributes)
 type ShardingKind =
     | HAMT = 0x00uL
@@ -69,8 +77,8 @@ type ShardingKind =
 // shards can either represent leaves (actual data or a dead end) or trees
 // (tree in a generalised sense, actually a dag)
 type GenericStoreShardValue =
-    | Leaf of (byte [] * EncryptedContentId) option
-    | Tree of (byte [] * EncryptedContentId)
+    | Leaf of DagNodeRef option
+    | Tree of DagNodeRef
 
 
 // this is where the actual implementations live (i.e. whether this is
@@ -93,12 +101,12 @@ type IStoreShard =
     abstract member Insert:
         (EncryptedContentId -> EncryptedContent) ->
         (EncryptedContent -> EncryptedContentId) ->
-        (byte [] -> EncryptedContent -> PlainContent) ->
-        (byte [] -> PlainContent -> EncryptedContent) ->
+        DecryptionType ->
+        EncryptionType ->
         Generic.Stack<IStoreShard> ->
         PlainContentId ->
-        (byte [] * EncryptedContentId) ->
-            (byte [] * EncryptedContentId) option
+        DagNodeRef ->
+            DagNodeRef option
 
     // arg: getBlock
     // arg: putBlock
@@ -110,12 +118,12 @@ type IStoreShard =
     abstract member Update:
         (EncryptedContentId -> EncryptedContent) ->
         (EncryptedContent -> EncryptedContentId) ->
-        (byte [] -> EncryptedContent -> PlainContent) ->
-        (byte [] -> PlainContent -> EncryptedContent) ->
+        DecryptionType ->
+        EncryptionType ->
         Generic.Stack<IStoreShard> ->
         PlainContentId ->
-        (byte [] * EncryptedContentId) ->
-            (byte [] * EncryptedContentId) option
+        DagNodeRef ->
+            DagNodeRef option
 
     // arg: getBlock
     // arg: putBlock
@@ -127,12 +135,12 @@ type IStoreShard =
     abstract member Delete:
         (EncryptedContentId -> EncryptedContent) ->
         (EncryptedContent -> EncryptedContentId) ->
-        (byte [] -> EncryptedContent -> PlainContent) ->
-        (byte [] -> PlainContent -> EncryptedContent) ->
+        DecryptionType ->
+        EncryptionType ->
         Generic.Stack<IStoreShard> ->
         PlainContentId ->
-        (byte [] * EncryptedContentId) ->
-            (byte [] * EncryptedContentId) option
+        DagNodeRef ->
+            DagNodeRef option
 
     //InsertOrUpdate
     //DeleteIfExists
@@ -142,6 +150,13 @@ type IStoreShard =
     abstract member SerializeShard: IStoreShard -> PlainContent
 
 
+// for convenience
+
+type private LeafOpCoreArgs<'T> =
+    Generic.Stack<IStoreShard> * IStoreShard * PlainContentId * 'T
+type private LeafOpType<'T> =
+    DagNodeRef option -> LeafOpCoreArgs<'T> -> DagNodeRef option
+
 // "outer" parser: determine the sharding algorithm in order to call the correct
 // "inner" parser at runtime
 let private parse1 () = ()
@@ -150,21 +165,19 @@ let private parse2 () = ()
 
 
 // this one is identical for all operations over the store
-let rec private lookupHelper<'T>
+let rec private lookupHelper<'Value>
     (parseShardBlock1: PlainContent -> ShardingKind * PlainContent)
     (parseShardBlock2: ShardingKind -> PlainContent -> IStoreShard)
     (getBlock: EncryptedContentId -> EncryptedContent)
     //(putBlock: EncryptedContent -> EncryptedContentId)
-    (decryptBlock: byte [] -> EncryptedContent -> PlainContent)
-    //(encryptBlock: byte [] -> PlainContent -> EncryptedContent)
-    (leafOp: (byte [] * EncryptedContentId) option
-             -> (Generic.Stack<IStoreShard> * IStoreShard * PlainContentId * 'T)
-             -> (byte [] * EncryptedContentId) option)
+    (decryptBlock: DecryptionType)
+    //(encryptBlock: EncryptionType)
+    (leafOp: LeafOpType<'Value>)
     (parentCollection: Generic.Stack<IStoreShard>)
-    (encryptedShardId: byte [] * EncryptedContentId)
+    (encryptedShardId: DagNodeRef)
     (index: PlainContentId)
-    (value: 'T)
-    : (byte [] * EncryptedContentId) option =
+    (value: 'Value)
+    : DagNodeRef option =
 
     // fetch and decrypt the current shard
     let currentShardShardingKind, currentShardRawContent =
@@ -189,7 +202,7 @@ let rec private lookupHelper<'T>
         leafOp result (parentCollection, currentShard, index, value)
     | Tree (key, cid) ->
         parentCollection.Push currentShard
-        lookupHelper<'T>
+        lookupHelper<'Value>
             parseShardBlock1
             parseShardBlock2
             getBlock
@@ -207,12 +220,12 @@ let lookup
     (parseShardBlock2: ShardingKind -> PlainContent -> IStoreShard)
     (getBlock: EncryptedContentId -> EncryptedContent)
     //(putBlock: EncryptedContent -> EncryptedContentId)
-    (decryptBlock: byte [] -> EncryptedContent -> PlainContent)
-    //(encryptBlock: byte [] -> PlainContent -> EncryptedContent)
-    (shard: byte [] * EncryptedContentId)
+    (decryptBlock: DecryptionType)
+    //(encryptBlock: EncryptionType)
+    (shard: DagNodeRef)
     (index: PlainContentId)
-    //(value: byte [] * EncryptedContentId)
-    : (byte [] * EncryptedContentId) option =
+    //(value: DagNodeRef)
+    : DagNodeRef option =
 
     // recurse
     lookupHelper<unit>
@@ -233,12 +246,12 @@ let insert
     (parseShardBlock2: ShardingKind -> PlainContent -> IStoreShard)
     (getBlock: EncryptedContentId -> EncryptedContent)
     (putBlock: EncryptedContent -> EncryptedContentId)
-    (decryptBlock: byte [] -> EncryptedContent -> PlainContent)
-    (encryptBlock: byte [] -> PlainContent -> EncryptedContent)
-    (shard: byte [] * EncryptedContentId)
+    (decryptBlock: DecryptionType)
+    (encryptBlock: EncryptionType)
+    (shard: DagNodeRef)
     (index: PlainContentId)
-    (value: byte [] * EncryptedContentId)
-    : (byte [] * EncryptedContentId) option =
+    (value: DagNodeRef)
+    : DagNodeRef option =
 
     let modify res (parentCollection, currentShard: IStoreShard, k, v) =
         match res with
@@ -258,7 +271,7 @@ let insert
             )
 
     // recurse
-    lookupHelper<byte [] * EncryptedContentId>
+    lookupHelper<DagNodeRef>
         parseShardBlock1
         parseShardBlock2
         getBlock
@@ -276,12 +289,12 @@ let update
     (parseShardBlock2: ShardingKind -> PlainContent -> IStoreShard)
     (getBlock: EncryptedContentId -> EncryptedContent)
     (putBlock: EncryptedContent -> EncryptedContentId)
-    (decryptBlock: byte [] -> EncryptedContent -> PlainContent)
-    (encryptBlock: byte [] -> PlainContent -> EncryptedContent)
-    (shard: byte [] * EncryptedContentId)
+    (decryptBlock: DecryptionType)
+    (encryptBlock: EncryptionType)
+    (shard: DagNodeRef)
     (index: PlainContentId)
-    (value: byte [] * EncryptedContentId)
-    : (byte [] * EncryptedContentId) option =
+    (value: DagNodeRef)
+    : DagNodeRef option =
 
     let modify res (parentCollection, currentShard: IStoreShard, k, v) =
         match res with
@@ -301,7 +314,7 @@ let update
             )
 
     // recurse
-    lookupHelper<byte [] * EncryptedContentId>
+    lookupHelper<DagNodeRef>
         parseShardBlock1
         parseShardBlock2
         getBlock
@@ -319,12 +332,12 @@ let delete
     (parseShardBlock2: ShardingKind -> PlainContent -> IStoreShard)
     (getBlock: EncryptedContentId -> EncryptedContent)
     (putBlock: EncryptedContent -> EncryptedContentId)
-    (decryptBlock: byte [] -> EncryptedContent -> PlainContent)
-    (encryptBlock: byte [] -> PlainContent -> EncryptedContent)
-    (shard: byte [] * EncryptedContentId)
+    (decryptBlock: DecryptionType)
+    (encryptBlock: EncryptionType)
+    (shard: DagNodeRef)
     (index: PlainContentId)
-    (value: byte [] * EncryptedContentId)
-    : (byte [] * EncryptedContentId) option =
+    (value: DagNodeRef)
+    : DagNodeRef option =
 
     let modify res (parentCollection, currentShard: IStoreShard, k, v) =
         match res with
@@ -344,7 +357,7 @@ let delete
             )
 
     // recurse
-    lookupHelper<byte [] * EncryptedContentId>
+    lookupHelper<DagNodeRef>
         parseShardBlock1
         parseShardBlock2
         getBlock
