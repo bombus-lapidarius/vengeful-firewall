@@ -152,6 +152,9 @@ type IStoreShard =
 
 // for convenience
 
+type ParseShardBlock1Type = PlainContent -> ShardingKind * PlainContent
+type ParseShardBlock2Type = ShardingKind -> PlainContent -> IStoreShard
+
 type private LeafOpCoreArgs<'T> =
     Generic.Stack<IStoreShard> * IStoreShard * PlainContentId * 'T
 type private LeafOpType<'T> =
@@ -166,8 +169,8 @@ let private parse2 () = ()
 
 // this one is identical for all operations over the store
 let rec private lookupHelper<'Value>
-    (parseShardBlock1: PlainContent -> ShardingKind * PlainContent)
-    (parseShardBlock2: ShardingKind -> PlainContent -> IStoreShard)
+    (parseShardBlock1: ParseShardBlock1Type)
+    (parseShardBlock2: ParseShardBlock2Type)
     (getBlock: EncryptedContentId -> EncryptedContent)
     //(putBlock: EncryptedContent -> EncryptedContentId)
     (decryptBlock: DecryptionType)
@@ -216,8 +219,8 @@ let rec private lookupHelper<'Value>
 
 [<CompiledName("Lookup")>]
 let lookup
-    (parseShardBlock1: PlainContent -> ShardingKind * PlainContent)
-    (parseShardBlock2: ShardingKind -> PlainContent -> IStoreShard)
+    (parseShardBlock1: ParseShardBlock1Type)
+    (parseShardBlock2: ParseShardBlock2Type)
     (getBlock: EncryptedContentId -> EncryptedContent)
     //(putBlock: EncryptedContent -> EncryptedContentId)
     (decryptBlock: DecryptionType)
@@ -242,8 +245,8 @@ let lookup
 
 [<CompiledName("Insert")>]
 let insert
-    (parseShardBlock1: PlainContent -> ShardingKind * PlainContent)
-    (parseShardBlock2: ShardingKind -> PlainContent -> IStoreShard)
+    (parseShardBlock1: ParseShardBlock1Type)
+    (parseShardBlock2: ParseShardBlock2Type)
     (getBlock: EncryptedContentId -> EncryptedContent)
     (putBlock: EncryptedContent -> EncryptedContentId)
     (decryptBlock: DecryptionType)
@@ -285,8 +288,8 @@ let insert
 
 [<CompiledName("Update")>]
 let update
-    (parseShardBlock1: PlainContent -> ShardingKind * PlainContent)
-    (parseShardBlock2: ShardingKind -> PlainContent -> IStoreShard)
+    (parseShardBlock1: ParseShardBlock1Type)
+    (parseShardBlock2: ParseShardBlock2Type)
     (getBlock: EncryptedContentId -> EncryptedContent)
     (putBlock: EncryptedContent -> EncryptedContentId)
     (decryptBlock: DecryptionType)
@@ -328,8 +331,8 @@ let update
 
 [<CompiledName("Delete")>]
 let delete
-    (parseShardBlock1: PlainContent -> ShardingKind * PlainContent)
-    (parseShardBlock2: ShardingKind -> PlainContent -> IStoreShard)
+    (parseShardBlock1: ParseShardBlock1Type)
+    (parseShardBlock2: ParseShardBlock2Type)
     (getBlock: EncryptedContentId -> EncryptedContent)
     (putBlock: EncryptedContent -> EncryptedContentId)
     (decryptBlock: DecryptionType)
