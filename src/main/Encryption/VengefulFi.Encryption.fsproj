@@ -13,6 +13,8 @@
     <Compile Include="Convert.fs" />
     <Compile Include="Cache.fs" />
     <Compile Include="Mapping.fs" />
+    <Compile Include="Mapping.Actions.fs" />
+    <Compile Include="Mapping.Interop.fs" />
     <Compile Include="CryptoEngines.fs" />
     <Compile Include="Block.fs" />
   </ItemGroup>
