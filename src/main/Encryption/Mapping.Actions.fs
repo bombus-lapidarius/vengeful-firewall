@@ -59,6 +59,7 @@ SOFTWARE.
 
 
 open System.Collections
+open System.Threading
 
 
 open VengefulFi.Encryption
@@ -98,9 +99,9 @@ let rec private lookupHelper<'Value>
 
     // fetch and decrypt the current shard
     let currentShardShardingKind, currentShardRawContent =
-        (snd encryptedShardId)
+        encryptedShardId.Target
         |> getBlock
-        |> decryptBlock (fst encryptedShardId)
+        |> decryptBlock encryptedShardId.Cipher
         |> parseShardBlock1
 
     // call the correct IStoreShard parser
@@ -117,7 +118,7 @@ let rec private lookupHelper<'Value>
         // only the function arguments the operation in question needs are
         // actually used, all others are discarded
         leafOp result (parentCollection, currentShard, index, value)
-    | Tree (key, cid) ->
+    | Tree (substructure) ->
         parentCollection.Push currentShard
         lookupHelper<'Value>
             parseShardBlock1
@@ -126,9 +127,31 @@ let rec private lookupHelper<'Value>
             decryptBlock
             leafOp
             parentCollection
-            (key, cid)
+            substructure
             index
             value
+
+
+let private updateRootAtomically
+    (root: Root)
+    (newValue: DagNodeRef)
+    (oldValue: DagNodeRef) =
+
+    // At this point, we always hold a reference to oldValue; which means that
+    // the garbage collector should leave it alone. That in turn means that as
+    // long as our root record still contains a reference to this oldValue
+    // (which itself ought to be immutable and only hold references to other
+    // immutable data), we may assume that no other thread has inserted an
+    // updated root node into our dag.
+    // Therefore, a successful compare-and-swap operation means that we have
+    // successfully updated the root node ourselves.
+    let resultingValue =
+        Interlocked.CompareExchange<DagNodeRef>
+            (&(root.TopLevelNode), newValue, oldValue)
+
+    match resultingValue = oldValue with
+    | true -> (true, newValue)
+    | false -> (false, resultingValue)
 
 
 [<CompiledName("Lookup")>]

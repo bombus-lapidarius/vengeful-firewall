@@ -64,12 +64,26 @@ open System.Collections
 open VengefulFi.Encryption
 
 
-// for convenience
+// This needs to be a reference type, so that references to its instances can be
+// modified atomically using a compare-and-swap operation.
+[<NoComparison>]
+type DagNodeRef = {
+    Cipher: byte [] // TODO: key, cipher and some "seed value"
+    Target: EncryptedContentId
+}
 
-type DagNodeRef = byte [] * EncryptedContentId
+// for convenience
 
 type DecryptionType = byte [] -> EncryptedContent -> PlainContent
 type EncryptionType = byte [] -> PlainContent -> EncryptedContent
+
+
+// TODO: use an off-the-shelf F# reference cell?
+// TODO: include a reference to the previous root?
+[<NoComparison>]
+type Root = {
+    mutable TopLevelNode: DagNodeRef
+}
 
 
 // TODO: extend at run time (using attributes)
