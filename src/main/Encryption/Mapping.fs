@@ -72,11 +72,6 @@ type DagNodeRef = {
     Target: EncryptedContentId
 }
 
-// for convenience
-
-type DecryptionType = byte [] -> EncryptedContent -> PlainContent
-type EncryptionType = byte [] -> PlainContent -> EncryptedContent
-
 
 // TODO: use an off-the-shelf F# reference cell?
 // TODO: include a reference to the previous root?
@@ -96,6 +91,12 @@ type ShardingKind =
 type GenericStoreShardValue =
     | Leaf of DagNodeRef option
     | Tree of DagNodeRef
+
+
+// for convenience
+
+type DecryptionType = byte [] -> EncryptedContent -> PlainContent
+type EncryptionType = byte [] -> PlainContent -> EncryptedContent
 
 
 // this is where the actual implementations live (i.e. whether this is

@@ -65,21 +65,45 @@ open System.Threading
 open VengefulFi.Encryption
 
 
+let private updateRootAtomically
+    (root: Root)
+    (newValue: DagNodeRef)
+    (oldValue: DagNodeRef) =
+
+    // At this point, we always hold a reference to oldValue; which means that
+    // the garbage collector should leave it alone. That in turn means that as
+    // long as our root record still contains a reference to this oldValue
+    // (which itself ought to be immutable and only hold references to other
+    // immutable data), we may assume that no other thread has inserted an
+    // updated root node into our dag.
+    // Therefore, a successful compare-and-swap operation means that we have
+    // successfully updated the root node ourselves.
+    let resultingValue =
+        Interlocked.CompareExchange<DagNodeRef>
+            (&(root.TopLevelNode), newValue, oldValue)
+
+    match resultingValue = oldValue with
+    | true -> (true, newValue)
+    | false -> (false, resultingValue)
+
+
 // for convenience
 
 type ParseShardBlock1Type = PlainContent -> ShardingKind * PlainContent
 type ParseShardBlock2Type = ShardingKind -> PlainContent -> IStoreShard
 
-type private LeafOpCoreArgs<'T> =
-    Generic.Stack<IStoreShard> * IStoreShard * PlainContentId * 'T
-type private LeafOpType<'T> =
-    DagNodeRef option -> LeafOpCoreArgs<'T> -> DagNodeRef option
 
 // "outer" parser: determine the sharding algorithm in order to call the correct
 // "inner" parser at runtime
 let private parse1 () = ()
 // "inner" parser: call the appropriate constructor or parser method
 let private parse2 () = ()
+
+
+type private LeafOpCoreArgs<'T> =
+    Generic.Stack<IStoreShard> * IStoreShard * PlainContentId * 'T
+type private LeafOpType<'T> =
+    DagNodeRef option -> LeafOpCoreArgs<'T> -> DagNodeRef option
 
 
 // this one is identical for all operations over the store
@@ -130,28 +154,6 @@ let rec private lookupHelper<'Value>
             substructure
             index
             value
-
-
-let private updateRootAtomically
-    (root: Root)
-    (newValue: DagNodeRef)
-    (oldValue: DagNodeRef) =
-
-    // At this point, we always hold a reference to oldValue; which means that
-    // the garbage collector should leave it alone. That in turn means that as
-    // long as our root record still contains a reference to this oldValue
-    // (which itself ought to be immutable and only hold references to other
-    // immutable data), we may assume that no other thread has inserted an
-    // updated root node into our dag.
-    // Therefore, a successful compare-and-swap operation means that we have
-    // successfully updated the root node ourselves.
-    let resultingValue =
-        Interlocked.CompareExchange<DagNodeRef>
-            (&(root.TopLevelNode), newValue, oldValue)
-
-    match resultingValue = oldValue with
-    | true -> (true, newValue)
-    | false -> (false, resultingValue)
 
 
 [<CompiledName("Lookup")>]
