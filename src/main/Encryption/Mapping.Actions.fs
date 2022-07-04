@@ -225,6 +225,9 @@ let insert
         value
 
 
+//InsertOrUpdate
+
+
 [<CompiledName("Update")>]
 let update
     (parseShardBlock1: ParseShardBlock1Type)
@@ -309,3 +312,6 @@ let delete
         shard
         index
         value
+
+
+//DeleteIfExists

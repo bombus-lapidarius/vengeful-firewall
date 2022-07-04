@@ -160,9 +160,6 @@ type IStoreShard =
         DagNodeRef ->
             DagNodeRef option
 
-    //InsertOrUpdate
-    //DeleteIfExists
-
     // TODO
     abstract member DeserializeShard: PlainContent -> IStoreShard
     abstract member SerializeShard: IStoreShard -> PlainContent
