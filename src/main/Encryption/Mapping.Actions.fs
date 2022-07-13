@@ -193,35 +193,19 @@ let lookup
         ()
 
 
-let rec private insertHelper
+let rec private modifyHelper
     (parseShardBlock1: ParseShardBlock1Type)
     (parseShardBlock2: ParseShardBlock2Type)
     (getBlock: EncryptedContentId -> EncryptedContent)
     (putBlock: EncryptedContent -> EncryptedContentId)
     (decryptBlock: DecryptionType)
     (encryptBlock: EncryptionType)
+    (modify: LeafOpType<DagNodeRef>)
     (root: Root)
     (currentDagNode: DagNodeRef)
     (index: PlainContentId)
     (value: DagNodeRef)
     : bool =
-
-    let modify res (parentCollection, currentShard: IStoreShard, k, v) =
-        match res with
-        | None ->
-            currentShard.Insert
-                getBlock
-                putBlock
-                decryptBlock
-                encryptBlock
-                parentCollection
-                k
-                v
-        | Some (_) ->
-            raise (
-                System.ArgumentException
-                    "the specified key already exists"
-            )
 
     // Apply our modification and rebalance the data structure if necessary.
     let intermediateResult =
@@ -238,13 +222,14 @@ let rec private insertHelper
 
     // Simplify the recursor function using partial application.
     let recursor =
-        insertHelper
+        modifyHelper
             parseShardBlock1
             parseShardBlock2
             getBlock
             putBlock
             decryptBlock
             encryptBlock
+            modify
 
     // Attempt to replace the current root node. Retry the procedure in case
     // of failure.
@@ -273,15 +258,33 @@ let insert
     (value: DagNodeRef)
     : bool =
 
+    let modify res (parentCollection, currentShard: IStoreShard, k, v) =
+        match res with
+        | None ->
+            currentShard.Insert
+                getBlock
+                putBlock
+                decryptBlock
+                encryptBlock
+                parentCollection
+                k
+                v
+        | Some (_) ->
+            raise (
+                System.ArgumentException
+                    "the specified key already exists"
+            )
+
     let currentRootValue = root.TopLevelNode
 
-    insertHelper
+    modifyHelper
         parseShardBlock1
         parseShardBlock2
         getBlock
         putBlock
         decryptBlock
         encryptBlock
+        modify
         root
         currentRootValue
         index
@@ -291,7 +294,8 @@ let insert
 //InsertOrUpdate
 
 
-let rec private updateHelper
+[<CompiledName("Update")>]
+let update
     (parseShardBlock1: ParseShardBlock1Type)
     (parseShardBlock2: ParseShardBlock2Type)
     (getBlock: EncryptedContentId -> EncryptedContent)
@@ -299,7 +303,6 @@ let rec private updateHelper
     (decryptBlock: DecryptionType)
     (encryptBlock: EncryptionType)
     (root: Root)
-    (currentDagNode: DagNodeRef)
     (index: PlainContentId)
     (value: DagNodeRef)
     : bool =
@@ -321,72 +324,24 @@ let rec private updateHelper
                     "no entry for the specified key found"
             )
 
-    // Apply our modification and rebalance the data structure if necessary.
-    let intermediateResult =
-        lookupHelper<DagNodeRef>
-            parseShardBlock1
-            parseShardBlock2
-            getBlock
-            decryptBlock
-            modify
-            (Generic.Stack<IStoreShard>())
-            currentDagNode
-            index
-            value
-
-    // Simplify the recursor function using partial application.
-    let recursor =
-        updateHelper
-            parseShardBlock1
-            parseShardBlock2
-            getBlock
-            putBlock
-            decryptBlock
-            encryptBlock
-
-    // Attempt to replace the current root node. Retry the procedure in case
-    // of failure.
-    match intermediateResult with
-    | Some (result) ->
-        updateRootAtomically
-            recursor
-            root
-            result
-            currentDagNode
-            index
-            value
-    | None -> false
-
-
-[<CompiledName("Update")>]
-let update
-    (parseShardBlock1: ParseShardBlock1Type)
-    (parseShardBlock2: ParseShardBlock2Type)
-    (getBlock: EncryptedContentId -> EncryptedContent)
-    (putBlock: EncryptedContent -> EncryptedContentId)
-    (decryptBlock: DecryptionType)
-    (encryptBlock: EncryptionType)
-    (root: Root)
-    (index: PlainContentId)
-    (value: DagNodeRef)
-    : bool =
-
     let currentRootValue = root.TopLevelNode
 
-    updateHelper
+    modifyHelper
         parseShardBlock1
         parseShardBlock2
         getBlock
         putBlock
         decryptBlock
         encryptBlock
+        modify
         root
         currentRootValue
         index
         value
 
 
-let rec private deleteHelper
+[<CompiledName("Delete")>]
+let delete
     (parseShardBlock1: ParseShardBlock1Type)
     (parseShardBlock2: ParseShardBlock2Type)
     (getBlock: EncryptedContentId -> EncryptedContent)
@@ -394,7 +349,6 @@ let rec private deleteHelper
     (decryptBlock: DecryptionType)
     (encryptBlock: EncryptionType)
     (root: Root)
-    (currentDagNode: DagNodeRef)
     (index: PlainContentId)
     (value: DagNodeRef)
     : bool =
@@ -416,65 +370,16 @@ let rec private deleteHelper
                     "no entry for the specified key found"
             )
 
-    // Apply our modification and rebalance the data structure if necessary.
-    let intermediateResult =
-        lookupHelper<DagNodeRef>
-            parseShardBlock1
-            parseShardBlock2
-            getBlock
-            decryptBlock
-            modify
-            (Generic.Stack<IStoreShard>())
-            currentDagNode
-            index
-            value
-
-    // Simplify the recursor function using partial application.
-    let recursor =
-        deleteHelper
-            parseShardBlock1
-            parseShardBlock2
-            getBlock
-            putBlock
-            decryptBlock
-            encryptBlock
-
-    // Attempt to replace the current root node. Retry the procedure in case
-    // of failure.
-    match intermediateResult with
-    | Some (result) ->
-        updateRootAtomically
-            recursor
-            root
-            result
-            currentDagNode
-            index
-            value
-    | None -> false
-
-
-[<CompiledName("Delete")>]
-let delete
-    (parseShardBlock1: ParseShardBlock1Type)
-    (parseShardBlock2: ParseShardBlock2Type)
-    (getBlock: EncryptedContentId -> EncryptedContent)
-    (putBlock: EncryptedContent -> EncryptedContentId)
-    (decryptBlock: DecryptionType)
-    (encryptBlock: EncryptionType)
-    (root: Root)
-    (index: PlainContentId)
-    (value: DagNodeRef)
-    : bool =
-
     let currentRootValue = root.TopLevelNode
 
-    deleteHelper
+    modifyHelper
         parseShardBlock1
         parseShardBlock2
         getBlock
         putBlock
         decryptBlock
         encryptBlock
+        modify
         root
         currentRootValue
         index
