@@ -119,10 +119,7 @@ type private LeafOpType<'T> =
 let rec private lookupHelper<'Value>
     (parseShardBlock1: ParseShardBlock1Type)
     (parseShardBlock2: ParseShardBlock2Type)
-    (getBlock: EncryptedContentId -> EncryptedContent)
-    //(putBlock: EncryptedContent -> EncryptedContentId)
-    (decryptBlock: DecryptionType)
-    //(encryptBlock: EncryptionType)
+    (hookCollection: HookCollection)
     (leafOp: LeafOpType<'Value>)
     (parentCollection: Generic.Stack<IStoreShard>)
     (encryptedShardId: DagNodeRef)
@@ -133,8 +130,8 @@ let rec private lookupHelper<'Value>
     // fetch and decrypt the current shard
     let currentShardShardingKind, currentShardRawContent =
         encryptedShardId.Target
-        |> getBlock
-        |> decryptBlock encryptedShardId.Cipher
+        |> hookCollection.GetBlock
+        |> hookCollection.DecryptBlock encryptedShardId.Cipher
         |> parseShardBlock1
 
     // call the correct IStoreShard parser
@@ -156,8 +153,7 @@ let rec private lookupHelper<'Value>
         lookupHelper<'Value>
             parseShardBlock1
             parseShardBlock2
-            getBlock
-            decryptBlock
+            hookCollection
             leafOp
             parentCollection
             substructure
@@ -169,10 +165,7 @@ let rec private lookupHelper<'Value>
 let lookup
     (parseShardBlock1: ParseShardBlock1Type)
     (parseShardBlock2: ParseShardBlock2Type)
-    (getBlock: EncryptedContentId -> EncryptedContent)
-    //(putBlock: EncryptedContent -> EncryptedContentId)
-    (decryptBlock: DecryptionType)
-    //(encryptBlock: EncryptionType)
+    (hookCollection: HookCollection)
     (root: Root)
     (index: PlainContentId)
     //(value: DagNodeRef)
@@ -184,8 +177,7 @@ let lookup
     lookupHelper<unit>
         parseShardBlock1
         parseShardBlock2
-        getBlock
-        decryptBlock
+        hookCollection
         (fun result _ -> result)
         (Generic.Stack<IStoreShard>())
         currentRootValue
@@ -196,10 +188,7 @@ let lookup
 let rec private modifyHelper
     (parseShardBlock1: ParseShardBlock1Type)
     (parseShardBlock2: ParseShardBlock2Type)
-    (getBlock: EncryptedContentId -> EncryptedContent)
-    (putBlock: EncryptedContent -> EncryptedContentId)
-    (decryptBlock: DecryptionType)
-    (encryptBlock: EncryptionType)
+    (hookCollection: HookCollection)
     (modify: LeafOpType<DagNodeRef>)
     (root: Root)
     (currentDagNode: DagNodeRef)
@@ -212,8 +201,7 @@ let rec private modifyHelper
         lookupHelper<DagNodeRef>
             parseShardBlock1
             parseShardBlock2
-            getBlock
-            decryptBlock
+            hookCollection
             modify
             (Generic.Stack<IStoreShard>())
             currentDagNode
@@ -225,10 +213,7 @@ let rec private modifyHelper
         modifyHelper
             parseShardBlock1
             parseShardBlock2
-            getBlock
-            putBlock
-            decryptBlock
-            encryptBlock
+            hookCollection
             modify
 
     // Attempt to replace the current root node. Retry the procedure in case
@@ -249,10 +234,7 @@ let rec private modifyHelper
 let insert
     (parseShardBlock1: ParseShardBlock1Type)
     (parseShardBlock2: ParseShardBlock2Type)
-    (getBlock: EncryptedContentId -> EncryptedContent)
-    (putBlock: EncryptedContent -> EncryptedContentId)
-    (decryptBlock: DecryptionType)
-    (encryptBlock: EncryptionType)
+    (hookCollection: HookCollection)
     (root: Root)
     (index: PlainContentId)
     (value: DagNodeRef)
@@ -262,10 +244,7 @@ let insert
         match res with
         | None ->
             currentShard.Insert
-                getBlock
-                putBlock
-                decryptBlock
-                encryptBlock
+                hookCollection
                 parentCollection
                 k
                 v
@@ -280,10 +259,7 @@ let insert
     modifyHelper
         parseShardBlock1
         parseShardBlock2
-        getBlock
-        putBlock
-        decryptBlock
-        encryptBlock
+        hookCollection
         modify
         root
         currentRootValue
@@ -298,10 +274,7 @@ let insert
 let update
     (parseShardBlock1: ParseShardBlock1Type)
     (parseShardBlock2: ParseShardBlock2Type)
-    (getBlock: EncryptedContentId -> EncryptedContent)
-    (putBlock: EncryptedContent -> EncryptedContentId)
-    (decryptBlock: DecryptionType)
-    (encryptBlock: EncryptionType)
+    (hookCollection: HookCollection)
     (root: Root)
     (index: PlainContentId)
     (value: DagNodeRef)
@@ -311,10 +284,7 @@ let update
         match res with
         | Some (_) ->
             currentShard.Update
-                getBlock
-                putBlock
-                decryptBlock
-                encryptBlock
+                hookCollection
                 parentCollection
                 k
                 v
@@ -329,10 +299,7 @@ let update
     modifyHelper
         parseShardBlock1
         parseShardBlock2
-        getBlock
-        putBlock
-        decryptBlock
-        encryptBlock
+        hookCollection
         modify
         root
         currentRootValue
@@ -344,10 +311,7 @@ let update
 let delete
     (parseShardBlock1: ParseShardBlock1Type)
     (parseShardBlock2: ParseShardBlock2Type)
-    (getBlock: EncryptedContentId -> EncryptedContent)
-    (putBlock: EncryptedContent -> EncryptedContentId)
-    (decryptBlock: DecryptionType)
-    (encryptBlock: EncryptionType)
+    (hookCollection: HookCollection)
     (root: Root)
     (index: PlainContentId)
     (value: DagNodeRef)
@@ -357,10 +321,7 @@ let delete
         match res with
         | Some (_) ->
             currentShard.Delete
-                getBlock
-                putBlock
-                decryptBlock
-                encryptBlock
+                hookCollection
                 parentCollection
                 k
                 v
@@ -375,10 +336,7 @@ let delete
     modifyHelper
         parseShardBlock1
         parseShardBlock2
-        getBlock
-        putBlock
-        decryptBlock
-        encryptBlock
+        hookCollection
         modify
         root
         currentRootValue

@@ -86,17 +86,21 @@ type ShardingKind =
     | HAMT = 0x00uL
 
 
+[<NoComparison>]
+[<NoEquality>]
+type HookCollection = {
+    GetBlock: EncryptedContentId -> EncryptedContent
+    PutBlock: EncryptedContent -> EncryptedContentId
+    DecryptBlock: byte [] -> EncryptedContent -> PlainContent
+    EncryptBlock: byte [] -> PlainContent -> EncryptedContent
+}
+
+
 // shards can either represent leaves (actual data or a dead end) or trees
 // (tree in a generalised sense, actually a dag)
 type GenericStoreShardValue =
     | Leaf of DagNodeRef option
     | Tree of DagNodeRef
-
-
-// for convenience
-
-type DecryptionType = byte [] -> EncryptedContent -> PlainContent
-type EncryptionType = byte [] -> PlainContent -> EncryptedContent
 
 
 // this is where the actual implementations live (i.e. whether this is
@@ -117,10 +121,7 @@ type IStoreShard =
     // arg: index (or key)
     // arg: new or updated value
     abstract member Insert:
-        (EncryptedContentId -> EncryptedContent) ->
-        (EncryptedContent -> EncryptedContentId) ->
-        DecryptionType ->
-        EncryptionType ->
+        HookCollection ->
         Generic.Stack<IStoreShard> ->
         PlainContentId ->
         DagNodeRef ->
@@ -134,10 +135,7 @@ type IStoreShard =
     // arg: index (or key)
     // arg: new or updated value
     abstract member Update:
-        (EncryptedContentId -> EncryptedContent) ->
-        (EncryptedContent -> EncryptedContentId) ->
-        DecryptionType ->
-        EncryptionType ->
+        HookCollection ->
         Generic.Stack<IStoreShard> ->
         PlainContentId ->
         DagNodeRef ->
@@ -151,10 +149,7 @@ type IStoreShard =
     // arg: index (or key)
     // arg: new or updated value
     abstract member Delete:
-        (EncryptedContentId -> EncryptedContent) ->
-        (EncryptedContent -> EncryptedContentId) ->
-        DecryptionType ->
-        EncryptionType ->
+        HookCollection ->
         Generic.Stack<IStoreShard> ->
         PlainContentId ->
         DagNodeRef ->
