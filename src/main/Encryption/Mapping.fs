@@ -64,8 +64,6 @@ open System.Collections
 open VengefulFi.Encryption
 
 
-// This needs to be a reference type, so that references to its instances can be
-// modified atomically using a compare-and-swap operation.
 [<NoComparison>]
 type DagNodeRef = {
     Cipher: byte [] // TODO: key, cipher and some "seed value"
@@ -73,11 +71,17 @@ type DagNodeRef = {
 }
 
 
+// This needs to be a reference type, so that references to its instances can be
+// modified atomically using a compare-and-swap operation.
+[<NoComparison>]
+type MappingStoreDagNodeRef = | MappingStoreDagNodeRef of DagNodeRef
+
+
 // TODO: use an off-the-shelf F# reference cell?
 // TODO: include a reference to the previous root?
 [<NoComparison>]
 type Root = {
-    mutable TopLevelNode: DagNodeRef
+    mutable TopLevelNode: MappingStoreDagNodeRef
 }
 
 
@@ -100,7 +104,7 @@ type HookCollection = {
 // (tree in a generalised sense, actually a dag)
 type GenericStoreShardValue =
     | Leaf of DagNodeRef option
-    | Tree of DagNodeRef
+    | Tree of MappingStoreDagNodeRef
 
 
 // this is where the actual implementations live (i.e. whether this is
@@ -125,7 +129,7 @@ type IStoreShard =
         Generic.Stack<IStoreShard> ->
         PlainContentId ->
         DagNodeRef ->
-            DagNodeRef option
+            MappingStoreDagNodeRef option
 
     // arg: getBlock
     // arg: putBlock
@@ -139,7 +143,7 @@ type IStoreShard =
         Generic.Stack<IStoreShard> ->
         PlainContentId ->
         DagNodeRef ->
-            DagNodeRef option
+            MappingStoreDagNodeRef option
 
     // arg: getBlock
     // arg: putBlock
@@ -153,7 +157,7 @@ type IStoreShard =
         Generic.Stack<IStoreShard> ->
         PlainContentId ->
         DagNodeRef ->
-            DagNodeRef option
+            MappingStoreDagNodeRef option
 
     // TODO
     abstract member DeserializeShard: PlainContent -> IStoreShard

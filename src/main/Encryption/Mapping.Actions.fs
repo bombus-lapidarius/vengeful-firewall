@@ -68,8 +68,8 @@ open VengefulFi.Encryption
 let private updateRootAtomically
     continuation
     (root: Root)
-    (newValue: DagNodeRef)
-    (oldValue: DagNodeRef)
+    (newValue: MappingStoreDagNodeRef)
+    (oldValue: MappingStoreDagNodeRef)
     index
     value
     : bool =
@@ -83,7 +83,7 @@ let private updateRootAtomically
     // Therefore, a successful compare-and-swap operation means that we have
     // successfully updated the root node ourselves.
     let resultingValue =
-        Interlocked.CompareExchange<DagNodeRef>
+        Interlocked.CompareExchange<MappingStoreDagNodeRef>
             (&(root.TopLevelNode), newValue, oldValue)
 
     match resultingValue = oldValue with
@@ -116,27 +116,29 @@ type private LeafOpCoreArgs<'T> = {
     MappingPairValue: 'T
 }
 
-type private LeafOpType<'T> =
-    DagNodeRef option -> LeafOpCoreArgs<'T> -> DagNodeRef option
+type private LeafOpType<'TMappingPairValue, 'TResult> =
+    DagNodeRef option -> LeafOpCoreArgs<'TMappingPairValue> -> 'TResult option
 
 
 // this one is identical for all operations over the store
-let rec private lookupHelper<'Value>
+let rec private lookupHelper<'TMappingPairValue, 'TResult>
     (parseShardBlock1: ParseShardBlock1Type)
     (parseShardBlock2: ParseShardBlock2Type)
     (hookCollection: HookCollection)
-    (leafOp: LeafOpType<'Value>)
+    (leafOp: LeafOpType<'TMappingPairValue, 'TResult>)
     (parentCollection: Generic.Stack<IStoreShard>)
-    (encryptedShardId: DagNodeRef)
+    (encryptedShardId: MappingStoreDagNodeRef)
     (index: PlainContentId)
-    (value: 'Value)
-    : DagNodeRef option =
+    (value: 'TMappingPairValue)
+    : 'TResult option =
+
+    let (MappingStoreDagNodeRef unwrappedShardId) = encryptedShardId
 
     // fetch and decrypt the current shard
     let currentShardShardingKind, currentShardRawContent =
-        encryptedShardId.Target
+        unwrappedShardId.Target
         |> hookCollection.GetBlock
-        |> hookCollection.DecryptBlock encryptedShardId.Cipher
+        |> hookCollection.DecryptBlock unwrappedShardId.Cipher
         |> parseShardBlock1
 
     // call the correct IStoreShard parser
@@ -162,7 +164,7 @@ let rec private lookupHelper<'Value>
             }
     | Tree (substructure) ->
         parentCollection.Push currentShard
-        lookupHelper<'Value>
+        lookupHelper<'TMappingPairValue, 'TResult>
             parseShardBlock1
             parseShardBlock2
             hookCollection
@@ -186,7 +188,7 @@ let lookup
     let currentRootValue = root.TopLevelNode
 
     // recurse
-    lookupHelper<unit>
+    lookupHelper<unit, DagNodeRef>
         parseShardBlock1
         parseShardBlock2
         hookCollection
@@ -201,16 +203,16 @@ let rec private modifyHelper
     (parseShardBlock1: ParseShardBlock1Type)
     (parseShardBlock2: ParseShardBlock2Type)
     (hookCollection: HookCollection)
-    (modify: LeafOpType<DagNodeRef>)
+    (modify: LeafOpType<DagNodeRef, MappingStoreDagNodeRef>)
     (root: Root)
-    (currentDagNode: DagNodeRef)
+    (currentDagNode: MappingStoreDagNodeRef)
     (index: PlainContentId)
     (value: DagNodeRef)
     : bool =
 
     // Apply our modification and rebalance the data structure if necessary.
     let intermediateResult =
-        lookupHelper<DagNodeRef>
+        lookupHelper<DagNodeRef, MappingStoreDagNodeRef>
             parseShardBlock1
             parseShardBlock2
             hookCollection
