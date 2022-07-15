@@ -109,8 +109,13 @@ let private parse1 () = ()
 let private parse2 () = ()
 
 
-type private LeafOpCoreArgs<'T> =
-    Generic.Stack<IStoreShard> * IStoreShard * PlainContentId * 'T
+type private LeafOpCoreArgs<'T> = {
+    ParentCollection: Generic.Stack<IStoreShard>
+    CurrentShard: IStoreShard
+    MappingPairIndex: PlainContentId
+    MappingPairValue: 'T
+}
+
 type private LeafOpType<'T> =
     DagNodeRef option -> LeafOpCoreArgs<'T> -> DagNodeRef option
 
@@ -147,7 +152,14 @@ let rec private lookupHelper<'Value>
         // both lookup and modification operations
         // only the function arguments the operation in question needs are
         // actually used, all others are discarded
-        leafOp result (parentCollection, currentShard, index, value)
+        leafOp
+            result
+            {
+                ParentCollection = parentCollection
+                CurrentShard = currentShard
+                MappingPairIndex = index
+                MappingPairValue = value
+            }
     | Tree (substructure) ->
         parentCollection.Push currentShard
         lookupHelper<'Value>
@@ -240,14 +252,14 @@ let insert
     (value: DagNodeRef)
     : bool =
 
-    let modify res (parentCollection, currentShard: IStoreShard, k, v) =
-        match res with
+    let modifyLeaf result (coreArgs: LeafOpCoreArgs<DagNodeRef>) =
+        match result with
         | None ->
-            currentShard.Insert
+            coreArgs.CurrentShard.Insert
                 hookCollection
-                parentCollection
-                k
-                v
+                coreArgs.ParentCollection
+                coreArgs.MappingPairIndex
+                coreArgs.MappingPairValue
         | Some (_) ->
             raise (
                 System.ArgumentException
@@ -260,7 +272,7 @@ let insert
         parseShardBlock1
         parseShardBlock2
         hookCollection
-        modify
+        modifyLeaf
         root
         currentRootValue
         index
@@ -280,14 +292,14 @@ let update
     (value: DagNodeRef)
     : bool =
 
-    let modify res (parentCollection, currentShard: IStoreShard, k, v) =
-        match res with
+    let modifyLeaf result (coreArgs: LeafOpCoreArgs<DagNodeRef>) =
+        match result with
         | Some (_) ->
-            currentShard.Update
+            coreArgs.CurrentShard.Update
                 hookCollection
-                parentCollection
-                k
-                v
+                coreArgs.ParentCollection
+                coreArgs.MappingPairIndex
+                coreArgs.MappingPairValue
         | None ->
             raise (
                 Generic.KeyNotFoundException
@@ -300,7 +312,7 @@ let update
         parseShardBlock1
         parseShardBlock2
         hookCollection
-        modify
+        modifyLeaf
         root
         currentRootValue
         index
@@ -317,14 +329,14 @@ let delete
     (value: DagNodeRef)
     : bool =
 
-    let modify res (parentCollection, currentShard: IStoreShard, k, v) =
-        match res with
+    let modifyLeaf result (coreArgs: LeafOpCoreArgs<DagNodeRef>) =
+        match result with
         | Some (_) ->
-            currentShard.Delete
+            coreArgs.CurrentShard.Delete
                 hookCollection
-                parentCollection
-                k
-                v
+                coreArgs.ParentCollection
+                coreArgs.MappingPairIndex
+                coreArgs.MappingPairValue
         | None ->
             raise (
                 Generic.KeyNotFoundException
@@ -337,7 +349,7 @@ let delete
         parseShardBlock1
         parseShardBlock2
         hookCollection
-        modify
+        modifyLeaf
         root
         currentRootValue
         index
