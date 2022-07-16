@@ -65,37 +65,6 @@ open System.Threading
 open VengefulFi.Encryption
 
 
-let private updateRootAtomically
-    continuation
-    (root: Root)
-    (newValue: MappingStoreDagNodeRef)
-    (oldValue: MappingStoreDagNodeRef)
-    index
-    value
-    : bool =
-
-    // At this point, we always hold a reference to oldValue; which means that
-    // the garbage collector should leave it alone. That in turn means that as
-    // long as our root record still contains a reference to this oldValue
-    // (which itself ought to be immutable and only hold references to other
-    // immutable data), we may assume that no other thread has inserted an
-    // updated root node into our dag.
-    // Therefore, a successful compare-and-swap operation means that we have
-    // successfully updated the root node ourselves.
-    let resultingValue =
-        Interlocked.CompareExchange<MappingStoreDagNodeRef>
-            (&(root.TopLevelNode), newValue, oldValue)
-
-    match resultingValue = oldValue with
-    | true -> true
-    | false ->
-        continuation
-            root
-            resultingValue
-            index
-            value
-
-
 // for convenience
 
 type ParseShardBlock1Type = PlainContent -> ShardingKind * PlainContent
@@ -126,10 +95,10 @@ let rec private lookupHelper<'TMappingPairValue, 'TResult>
     (parseShardBlock2: ParseShardBlock2Type)
     (hookCollection: HookCollection)
     (leafOp: LeafOpType<'TMappingPairValue, 'TResult>)
-    (parentCollection: Generic.Stack<IStoreShard>)
-    (encryptedShardId: MappingStoreDagNodeRef)
     (index: PlainContentId)
     (value: 'TMappingPairValue)
+    (parentCollection: Generic.Stack<IStoreShard>)
+    (encryptedShardId: MappingStoreDagNodeRef)
     : 'TResult option =
 
     let (MappingStoreDagNodeRef unwrappedShardId) = encryptedShardId
@@ -169,10 +138,10 @@ let rec private lookupHelper<'TMappingPairValue, 'TResult>
             parseShardBlock2
             hookCollection
             leafOp
-            parentCollection
-            substructure
             index
             value
+            parentCollection
+            substructure
 
 
 [<CompiledName("Lookup")>]
@@ -193,10 +162,37 @@ let lookup
         parseShardBlock2
         hookCollection
         (fun result _ -> result)
-        (Generic.Stack<IStoreShard>())
-        currentRootValue
         index
         ()
+        (Generic.Stack<IStoreShard>())
+        currentRootValue
+
+
+let private updateRootAtomically
+    continuation
+    (root: Root)
+    (newValue: MappingStoreDagNodeRef)
+    (oldValue: MappingStoreDagNodeRef)
+    : bool =
+
+    // At this point, we always hold a reference to oldValue; which means that
+    // the garbage collector should leave it alone. That in turn means that as
+    // long as our root record still contains a reference to this oldValue
+    // (which itself ought to be immutable and only hold references to other
+    // immutable data), we may assume that no other thread has inserted an
+    // updated root node into our dag.
+    // Therefore, a successful compare-and-swap operation means that we have
+    // successfully updated the root node ourselves.
+    let resultingValue =
+        Interlocked.CompareExchange<MappingStoreDagNodeRef>
+            (&(root.TopLevelNode), newValue, oldValue)
+
+    match resultingValue = oldValue with
+    | true -> true
+    | false ->
+        continuation
+            root
+            resultingValue
 
 
 let rec private modifyHelper
@@ -204,10 +200,10 @@ let rec private modifyHelper
     (parseShardBlock2: ParseShardBlock2Type)
     (hookCollection: HookCollection)
     (modify: LeafOpType<DagNodeRef, MappingStoreDagNodeRef>)
-    (root: Root)
-    (currentDagNode: MappingStoreDagNodeRef)
     (index: PlainContentId)
     (value: DagNodeRef)
+    (root: Root)
+    (currentDagNode: MappingStoreDagNodeRef)
     : bool =
 
     // Apply our modification and rebalance the data structure if necessary.
@@ -217,10 +213,10 @@ let rec private modifyHelper
             parseShardBlock2
             hookCollection
             modify
-            (Generic.Stack<IStoreShard>())
-            currentDagNode
             index
             value
+            (Generic.Stack<IStoreShard>())
+            currentDagNode
 
     // Simplify the recursor function using partial application.
     let recursor =
@@ -229,6 +225,8 @@ let rec private modifyHelper
             parseShardBlock2
             hookCollection
             modify
+            index
+            value
 
     // Attempt to replace the current root node. Retry the procedure in case
     // of failure.
@@ -239,8 +237,6 @@ let rec private modifyHelper
             root
             result
             currentDagNode
-            index
-            value
     | None -> false
 
 
@@ -275,10 +271,10 @@ let insert
         parseShardBlock2
         hookCollection
         modifyLeaf
-        root
-        currentRootValue
         index
         value
+        root
+        currentRootValue
 
 
 //InsertOrUpdate
@@ -315,10 +311,10 @@ let update
         parseShardBlock2
         hookCollection
         modifyLeaf
-        root
-        currentRootValue
         index
         value
+        root
+        currentRootValue
 
 
 [<CompiledName("Delete")>]
@@ -352,10 +348,10 @@ let delete
         parseShardBlock2
         hookCollection
         modifyLeaf
-        root
-        currentRootValue
         index
         value
+        root
+        currentRootValue
 
 
 //DeleteIfExists
