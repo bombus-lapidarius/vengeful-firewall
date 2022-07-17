@@ -90,9 +90,18 @@ type ShardingKind =
     | HAMT = 0x00uL
 
 
+// "outer" parser: determine the sharding algorithm in order to call the correct
+// "inner" parser at runtime
+// "inner" parser: call the appropriate constructor or parser method
+
+
+// This type's instances need to be immutable to guarantee consistency
+// when its members are called inside other functions.
 [<NoComparison>]
 [<NoEquality>]
-type HookCollection = {
+type HookCollectionTemplate<'TParserResult> = {
+    ParseOuter: PlainContent -> ShardingKind * PlainContent
+    ParseInner: ShardingKind -> PlainContent -> 'TParserResult
     GetBlock: EncryptedContentId -> EncryptedContent
     PutBlock: EncryptedContent -> EncryptedContentId
     DecryptBlock: byte [] -> EncryptedContent -> PlainContent
@@ -117,43 +126,34 @@ type IStoreShard =
     abstract member Find:
         Generic.Stack<IStoreShard> -> PlainContentId -> GenericStoreShardValue
 
-    // arg: getBlock
-    // arg: putBlock
-    // arg: decryptBlock
-    // arg: encryptBlock
+    // arg: hookCollection
     // arg: parentCollection
     // arg: index (or key)
     // arg: new or updated value
     abstract member Insert:
-        HookCollection ->
+        HookCollectionTemplate<IStoreShard> ->
         Generic.Stack<IStoreShard> ->
         PlainContentId ->
         DagNodeRef ->
             MappingStoreDagNodeRef option
 
-    // arg: getBlock
-    // arg: putBlock
-    // arg: decryptBlock
-    // arg: encryptBlock
+    // arg: hookCollection
     // arg: parentCollection
     // arg: index (or key)
     // arg: new or updated value
     abstract member Update:
-        HookCollection ->
+        HookCollectionTemplate<IStoreShard> ->
         Generic.Stack<IStoreShard> ->
         PlainContentId ->
         DagNodeRef ->
             MappingStoreDagNodeRef option
 
-    // arg: getBlock
-    // arg: putBlock
-    // arg: decryptBlock
-    // arg: encryptBlock
+    // arg: hookCollection
     // arg: parentCollection
     // arg: index (or key)
     // arg: new or updated value
     abstract member Delete:
-        HookCollection ->
+        HookCollectionTemplate<IStoreShard> ->
         Generic.Stack<IStoreShard> ->
         PlainContentId ->
         DagNodeRef ->
@@ -162,3 +162,6 @@ type IStoreShard =
     // TODO
     abstract member DeserializeShard: PlainContent -> IStoreShard
     abstract member SerializeShard: IStoreShard -> PlainContent
+
+
+type HookCollection = HookCollectionTemplate<IStoreShard>

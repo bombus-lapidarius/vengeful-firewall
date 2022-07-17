@@ -65,19 +65,6 @@ open System.Threading
 open VengefulFi.Encryption
 
 
-// for convenience
-
-type ParseShardBlock1Type = PlainContent -> ShardingKind * PlainContent
-type ParseShardBlock2Type = ShardingKind -> PlainContent -> IStoreShard
-
-
-// "outer" parser: determine the sharding algorithm in order to call the correct
-// "inner" parser at runtime
-let private parse1 () = ()
-// "inner" parser: call the appropriate constructor or parser method
-let private parse2 () = ()
-
-
 type private LeafOpCoreArgs<'T> = {
     ParentCollection: Generic.Stack<IStoreShard>
     CurrentShard: IStoreShard
@@ -91,8 +78,6 @@ type private LeafOpType<'TMappingPairValue, 'TResult> =
 
 // this one is identical for all operations over the store
 let rec private lookupHelper<'TMappingPairValue, 'TResult>
-    (parseShardBlock1: ParseShardBlock1Type)
-    (parseShardBlock2: ParseShardBlock2Type)
     (hookCollection: HookCollection)
     (leafOp: LeafOpType<'TMappingPairValue, 'TResult>)
     (index: PlainContentId)
@@ -108,12 +93,12 @@ let rec private lookupHelper<'TMappingPairValue, 'TResult>
         unwrappedShardId.Target
         |> hookCollection.GetBlock
         |> hookCollection.DecryptBlock unwrappedShardId.Cipher
-        |> parseShardBlock1
+        |> hookCollection.ParseOuter
 
     // call the correct IStoreShard parser
     let currentShard =
         currentShardRawContent
-        |> parseShardBlock2 currentShardShardingKind
+        |> hookCollection.ParseInner currentShardShardingKind
 
     // apply the given function if we encounter a leaf
     // recurse otherwise
@@ -134,8 +119,6 @@ let rec private lookupHelper<'TMappingPairValue, 'TResult>
     | Tree (substructure) ->
         parentCollection.Push currentShard
         lookupHelper<'TMappingPairValue, 'TResult>
-            parseShardBlock1
-            parseShardBlock2
             hookCollection
             leafOp
             index
@@ -146,8 +129,6 @@ let rec private lookupHelper<'TMappingPairValue, 'TResult>
 
 [<CompiledName("Lookup")>]
 let lookup
-    (parseShardBlock1: ParseShardBlock1Type)
-    (parseShardBlock2: ParseShardBlock2Type)
     (hookCollection: HookCollection)
     (root: Root)
     (index: PlainContentId)
@@ -158,8 +139,6 @@ let lookup
 
     // recurse
     lookupHelper<unit, DagNodeRef>
-        parseShardBlock1
-        parseShardBlock2
         hookCollection
         (fun result _ -> result)
         index
@@ -196,8 +175,6 @@ let private updateRootAtomically
 
 
 let rec private modifyHelper
-    (parseShardBlock1: ParseShardBlock1Type)
-    (parseShardBlock2: ParseShardBlock2Type)
     (hookCollection: HookCollection)
     (modify: LeafOpType<DagNodeRef, MappingStoreDagNodeRef>)
     (index: PlainContentId)
@@ -209,8 +186,6 @@ let rec private modifyHelper
     // Apply our modification and rebalance the data structure if necessary.
     let intermediateResult =
         lookupHelper<DagNodeRef, MappingStoreDagNodeRef>
-            parseShardBlock1
-            parseShardBlock2
             hookCollection
             modify
             index
@@ -221,8 +196,6 @@ let rec private modifyHelper
     // Simplify the recursor function using partial application.
     let recursor =
         modifyHelper
-            parseShardBlock1
-            parseShardBlock2
             hookCollection
             modify
             index
@@ -242,8 +215,6 @@ let rec private modifyHelper
 
 [<CompiledName("Insert")>]
 let insert
-    (parseShardBlock1: ParseShardBlock1Type)
-    (parseShardBlock2: ParseShardBlock2Type)
     (hookCollection: HookCollection)
     (root: Root)
     (index: PlainContentId)
@@ -267,8 +238,6 @@ let insert
     let currentRootValue = root.TopLevelNode
 
     modifyHelper
-        parseShardBlock1
-        parseShardBlock2
         hookCollection
         modifyLeaf
         index
@@ -282,8 +251,6 @@ let insert
 
 [<CompiledName("Update")>]
 let update
-    (parseShardBlock1: ParseShardBlock1Type)
-    (parseShardBlock2: ParseShardBlock2Type)
     (hookCollection: HookCollection)
     (root: Root)
     (index: PlainContentId)
@@ -307,8 +274,6 @@ let update
     let currentRootValue = root.TopLevelNode
 
     modifyHelper
-        parseShardBlock1
-        parseShardBlock2
         hookCollection
         modifyLeaf
         index
@@ -319,8 +284,6 @@ let update
 
 [<CompiledName("Delete")>]
 let delete
-    (parseShardBlock1: ParseShardBlock1Type)
-    (parseShardBlock2: ParseShardBlock2Type)
     (hookCollection: HookCollection)
     (root: Root)
     (index: PlainContentId)
@@ -344,8 +307,6 @@ let delete
     let currentRootValue = root.TopLevelNode
 
     modifyHelper
-        parseShardBlock1
-        parseShardBlock2
         hookCollection
         modifyLeaf
         index
