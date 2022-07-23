@@ -59,6 +59,7 @@ SOFTWARE.
 
 
 open System.Collections
+open System.Collections.Immutable
 open System.Threading
 
 
@@ -66,7 +67,7 @@ open VengefulFi.Encryption
 
 
 type private LeafOpCoreArgs<'T> = {
-    ParentCollection: Generic.Stack<IStoreShard>
+    ParentCollection: ImmutableStack<ParentCollectionItem>
     CurrentShard: IStoreShard
     MappingPairIndex: PlainContentId
     MappingPairValue: 'T
@@ -82,11 +83,11 @@ let rec private lookupHelper<'TMappingPairValue, 'TResult>
     (leafOp: LeafOpType<'TMappingPairValue, 'TResult>)
     (index: PlainContentId)
     (value: 'TMappingPairValue)
-    (parentCollection: Generic.Stack<IStoreShard>)
-    (encryptedShardId: MappingStoreDagNodeRef)
+    (parentCollection: ImmutableStack<ParentCollectionItem>)
+    (currentShard: MappingStoreDagNodeRef)
     : 'TResult option =
 
-    let (MappingStoreDagNodeRef unwrappedShardId) = encryptedShardId
+    let (MappingStoreDagNodeRef unwrappedShardId) = currentShard
 
     // fetch and decrypt the current shard
     let currentShardShardingKind, currentShardRawContent =
@@ -96,13 +97,13 @@ let rec private lookupHelper<'TMappingPairValue, 'TResult>
         |> hookCollection.ParseOuter
 
     // call the correct IStoreShard parser
-    let currentShard =
+    let parsedCurrentShard =
         currentShardRawContent
         |> hookCollection.ParseInner currentShardShardingKind
 
     // apply the given function if we encounter a leaf
     // recurse otherwise
-    match currentShard.Find parentCollection index with
+    match parsedCurrentShard.Find parentCollection index with
     | Leaf (result) ->
         // keeping this generic enables us to use the same helper function for
         // both lookup and modification operations
@@ -112,18 +113,24 @@ let rec private lookupHelper<'TMappingPairValue, 'TResult>
             result
             {
                 ParentCollection = parentCollection
-                CurrentShard = currentShard
+                CurrentShard = parsedCurrentShard
                 MappingPairIndex = index
                 MappingPairValue = value
             }
     | Tree (substructure) ->
-        parentCollection.Push currentShard
+        let extendedParentCollection =
+            {
+                DeserialisedForm = parsedCurrentShard
+                SerialisedForm = currentShard
+            }
+            |> parentCollection.Push
+
         lookupHelper<'TMappingPairValue, 'TResult>
             hookCollection
             leafOp
             index
             value
-            parentCollection
+            extendedParentCollection
             substructure
 
 
@@ -143,7 +150,7 @@ let lookup
         (fun result _ -> result)
         index
         ()
-        (Generic.Stack<IStoreShard>())
+        (ImmutableStack.Create<ParentCollectionItem>())
         currentRootValue
 
 
@@ -190,7 +197,7 @@ let rec private modifyHelper
             modify
             index
             value
-            (Generic.Stack<IStoreShard>())
+            (ImmutableStack.Create<ParentCollectionItem>())
             currentDagNode
 
     // Simplify the recursor function using partial application.

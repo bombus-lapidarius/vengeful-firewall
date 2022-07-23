@@ -58,7 +58,7 @@ SOFTWARE.
 ############################################################################# *)
 
 
-open System.Collections
+open System.Collections.Immutable
 
 
 open VengefulFi.Encryption
@@ -109,6 +109,19 @@ type HookCollectionTemplate<'TParserResult> = {
 }
 
 
+// This shall serve as a vehicle for potential future forwards-compatibility
+// in case some implementations choose to rely on the caching of function call
+// results in their parser functions to improve runtime performance.
+// Providing both the deserialised as well as the original serialised form
+// of mapping store dag nodes ensures that both forms are always available
+// without indirections wherever a parent collection is passed around.
+[<Struct>]
+type ParentCollectionItemTemplate<'TParsedForm> = {
+    DeserialisedForm: 'TParsedForm
+    SerialisedForm: MappingStoreDagNodeRef
+}
+
+
 // shards can either represent leaves (actual data or a dead end) or trees
 // (tree in a generalised sense, actually a dag)
 type GenericStoreShardValue =
@@ -124,7 +137,9 @@ type IStoreShard =
     // arg: parentCollection
     // arg: index (or key)
     abstract member Find:
-        Generic.Stack<IStoreShard> -> PlainContentId -> GenericStoreShardValue
+        ImmutableStack<ParentCollectionItemTemplate<IStoreShard>> ->
+        PlainContentId ->
+            GenericStoreShardValue
 
     // arg: hookCollection
     // arg: parentCollection
@@ -132,7 +147,7 @@ type IStoreShard =
     // arg: new or updated value
     abstract member Insert:
         HookCollectionTemplate<IStoreShard> ->
-        Generic.Stack<IStoreShard> ->
+        ImmutableStack<ParentCollectionItemTemplate<IStoreShard>> ->
         PlainContentId ->
         DagNodeRef ->
             MappingStoreDagNodeRef option
@@ -143,7 +158,7 @@ type IStoreShard =
     // arg: new or updated value
     abstract member Update:
         HookCollectionTemplate<IStoreShard> ->
-        Generic.Stack<IStoreShard> ->
+        ImmutableStack<ParentCollectionItemTemplate<IStoreShard>> ->
         PlainContentId ->
         DagNodeRef ->
             MappingStoreDagNodeRef option
@@ -154,7 +169,7 @@ type IStoreShard =
     // arg: new or updated value
     abstract member Delete:
         HookCollectionTemplate<IStoreShard> ->
-        Generic.Stack<IStoreShard> ->
+        ImmutableStack<ParentCollectionItemTemplate<IStoreShard>> ->
         PlainContentId ->
         DagNodeRef ->
             MappingStoreDagNodeRef option
@@ -165,3 +180,5 @@ type IStoreShard =
 
 
 type HookCollection = HookCollectionTemplate<IStoreShard>
+
+type ParentCollectionItem = ParentCollectionItemTemplate<IStoreShard>
