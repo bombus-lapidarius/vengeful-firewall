@@ -170,8 +170,11 @@ let private updateRootAtomically
     // Therefore, a successful compare-and-swap operation means that we have
     // successfully updated the root node ourselves.
     let resultingValue =
-        Interlocked.CompareExchange<MappingStoreDagNodeRef>
-            (&(root.TopLevelNode), newValue, oldValue)
+        Interlocked.CompareExchange<MappingStoreDagNodeRef>(
+            &(root.TopLevelNode),
+            newValue,
+            oldValue
+        )
 
     match resultingValue = oldValue with
     | true -> true
