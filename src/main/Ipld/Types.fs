@@ -77,6 +77,7 @@ type HashName =
     | Sha384 = 0x20ul
     | Sha512 = 0x13ul
 
+[<Struct>]
 type Digest = Digest of byte []
 
 type Hash =
@@ -90,7 +91,9 @@ exception UnsupportedHashAlgorithmException of HashName * uint32
 exception HashSizeMismatchException of HashName * uint32
 
 
+[<Struct>]
 type RawContentId = RawContentId of byte []
+
 type RawContent = Stream
 
 
@@ -101,4 +104,6 @@ type GenericContentIdFuture =
       Hash: Hash }
 
 type GenericContentId = RawContentId
+
+[<Struct>]
 type GenericContent = GenericContent of RawContent

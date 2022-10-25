@@ -64,7 +64,11 @@ open System.Collections.Immutable
 open VengefulFi.Encryption
 
 
+// This data structure only contains two references and should not take up
+// more than 16 bytes on any cpu architecture that uses at most 64 bits in
+// its memory addresses.
 [<NoComparison>]
+[<Struct>]
 type DagNodeRef = {
     Cipher: byte [] // TODO: key, cipher and some "seed value"
     Target: EncryptedContentId

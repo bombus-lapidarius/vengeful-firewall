@@ -60,12 +60,17 @@ SOFTWARE.
 
 open VengefulFi.Ipld
 
-
+[<Struct>]
 type PlainContentId = PlainContentId of GenericContentId
+
+[<Struct>]
 type PlainContent = PlainContent of GenericContent
 
 
+[<Struct>]
 type EncryptedContentId = EncryptedContentId of GenericContentId
+
+[<Struct>]
 type EncryptedContent = EncryptedContent of GenericContent
 
 
