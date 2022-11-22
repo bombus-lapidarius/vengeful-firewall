@@ -3,8 +3,8 @@ image: mcr.microsoft.com/dotnet/sdk:5.0
 
 stages:
   - build
-  - publish
   - test
+  - publish
   # - deploy
 
 
@@ -17,6 +17,7 @@ build Encryption for linux-x64:
     paths:
       - src/main/Encryption/bin/Release/
       - src/main/Encryption/obj/Release/
+
 build Encryption for win10-x64:
   stage: build
   script:
@@ -34,6 +35,7 @@ build Ipld for linux-x64:
     paths:
       - src/main/Ipld/bin/Release/
       - src/main/Ipld/obj/Release/
+
 build Ipld for win10-x64:
   stage: build
   script:
@@ -51,6 +53,7 @@ build UnixFS for linux-x64:
     paths:
       - src/main/UnixFS/bin/Release/
       - src/main/UnixFS/obj/Release/
+
 build UnixFS for win10-x64:
   stage: build
   script:
@@ -68,6 +71,7 @@ build RpcApi for linux-x64:
     paths:
       - src/main/RpcApi/bin/Release/
       - src/main/RpcApi/obj/Release/
+
 build RpcApi for win10-x64:
   stage: build
   script:
@@ -90,6 +94,7 @@ publish RpcApi for linux-x64:
     paths:
       - src/main/RpcApi/bin/Release/
       - src/main/RpcApi/obj/Release/
+
 publish RpcApi for win10-x64:
   stage: publish
   # create a single executable native binary
@@ -128,6 +133,7 @@ test Ipld:
   # stage: deploy
   # script:
     # - TODO
+
 # run builds and tests in parallel for all components
 # deploy RpcApi for win10-x64:
   # stage: deploy
