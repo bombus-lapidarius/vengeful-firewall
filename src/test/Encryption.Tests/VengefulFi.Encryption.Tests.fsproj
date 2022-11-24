@@ -18,6 +18,7 @@
     <Compile Include="Utils.fs" />
     <Compile Include="TestMappings.fs" />
     <Compile Include="Block.fs" />
+    <Compile Include="Mapping.Actions.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
 

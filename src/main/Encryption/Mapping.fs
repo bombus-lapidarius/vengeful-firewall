@@ -178,10 +178,6 @@ type IStoreShard =
         DagNodeRef ->
             MappingStoreDagNodeRef option
 
-    // TODO
-    abstract member DeserializeShard: PlainContent -> IStoreShard
-    abstract member SerializeShard: IStoreShard -> PlainContent
-
 
 type HookCollection = HookCollectionTemplate<IStoreShard>
 
