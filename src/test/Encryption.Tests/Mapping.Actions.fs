@@ -294,7 +294,7 @@ let ``ensure the correct ordering of parent collection items``
                 "wrong parent collection ordering"
             )
 
-            Some (rootAfterSuccess |> MappingStoreDagNodeRef)
+            rootAfterSuccess |> MappingStoreDagNodeRef
 
         // This anonymous mock object will be injected during testing.
         { new IStoreShard with
@@ -314,14 +314,20 @@ let ``ensure the correct ordering of parent collection items``
                     |> MappingStoreDagNodeRef
                     |> Tree
 
-            member this.Insert _ parentCollection key value =
-                objectMockHelper "insert" parentCollection key value
+            member this.Insert _ parentCollection key value = {
+                Root = (objectMockHelper "insert" parentCollection key value)
+                Pinset = ImmutableQueue.Create<PinsetItem>()
+            }
 
-            member this.Update _ parentCollection key value =
-                objectMockHelper "update" parentCollection key value
+            member this.Update _ parentCollection key value = {
+                Root = (objectMockHelper "update" parentCollection key value)
+                Pinset = ImmutableQueue.Create<PinsetItem>()
+            }
 
-            member this.Delete _ parentCollection key value =
-                objectMockHelper "delete" parentCollection key value
+            member this.Delete _ parentCollection key value = {
+                Root = (objectMockHelper "delete" parentCollection key value)
+                Pinset = ImmutableQueue.Create<PinsetItem>()
+            }
         }
 
     let testAction actionToTest: unit =

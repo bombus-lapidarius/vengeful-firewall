@@ -74,7 +74,7 @@ type private LeafOpCoreArgs<'T> = {
 }
 
 type private LeafOpType<'TMappingPairValue, 'TResult> =
-    DagNodeRef option -> LeafOpCoreArgs<'TMappingPairValue> -> 'TResult option
+    DagNodeRef option -> LeafOpCoreArgs<'TMappingPairValue> -> 'TResult
 
 
 // this one is identical for all operations over the store
@@ -85,7 +85,7 @@ let rec private lookupHelper<'TMappingPairValue, 'TResult>
     (value: 'TMappingPairValue)
     (parentCollection: ImmutableStack<ParentCollectionItem>)
     (currentShard: MappingStoreDagNodeRef)
-    : 'TResult option =
+    : 'TResult =
 
     let (MappingStoreDagNodeRef unwrappedShardId) = currentShard
 
@@ -145,7 +145,7 @@ let lookup
     let currentRootValue = root.TopLevelNode
 
     // recurse
-    lookupHelper<unit, DagNodeRef>
+    lookupHelper<unit, DagNodeRef option>
         hookCollection
         (fun result _ -> result)
         index
@@ -186,7 +186,7 @@ let private updateRootAtomically
 
 let rec private modifyHelper
     (hookCollection: HookCollection)
-    (modify: LeafOpType<DagNodeRef, MappingStoreDagNodeRef>)
+    (modify: LeafOpType<DagNodeRef, ModificationResult>)
     (index: PlainContentId)
     (value: DagNodeRef)
     (root: Root)
@@ -195,7 +195,7 @@ let rec private modifyHelper
 
     // Apply our modification and rebalance the data structure if necessary.
     let intermediateResult =
-        lookupHelper<DagNodeRef, MappingStoreDagNodeRef>
+        lookupHelper<DagNodeRef, ModificationResult>
             hookCollection
             modify
             index
@@ -213,14 +213,11 @@ let rec private modifyHelper
 
     // Attempt to replace the current root node. Retry the procedure in case
     // of failure.
-    match intermediateResult with
-    | Some (result) ->
-        updateRootAtomically
-            recursor
-            root
-            result
-            currentDagNode
-    | None -> false
+    updateRootAtomically
+        recursor
+        root
+        intermediateResult.Root
+        currentDagNode
 
 
 [<CompiledName("Insert")>]

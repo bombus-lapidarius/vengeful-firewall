@@ -133,6 +133,23 @@ type GenericStoreShardValue =
     | Tree of MappingStoreDagNodeRef
 
 
+type PinsetAction =
+    | Pin = 0x00uy
+    | Unpin = 0x01uy
+
+[<Struct>]
+type PinsetItem = {
+    Target: EncryptedContentId
+    Action: PinsetAction
+}
+
+[<Struct>]
+type ModificationResult = {
+    Root: MappingStoreDagNodeRef
+    Pinset: ImmutableQueue<PinsetItem>
+}
+
+
 // this is where the actual implementations live (i.e. whether this is
 // a search tree, a HAMT etc.)
 type IStoreShard =
@@ -154,7 +171,7 @@ type IStoreShard =
         ImmutableStack<ParentCollectionItemTemplate<IStoreShard>> ->
         PlainContentId ->
         DagNodeRef ->
-            MappingStoreDagNodeRef option
+            ModificationResult
 
     // arg: hookCollection
     // arg: parentCollection
@@ -165,7 +182,7 @@ type IStoreShard =
         ImmutableStack<ParentCollectionItemTemplate<IStoreShard>> ->
         PlainContentId ->
         DagNodeRef ->
-            MappingStoreDagNodeRef option
+            ModificationResult
 
     // arg: hookCollection
     // arg: parentCollection
@@ -176,7 +193,7 @@ type IStoreShard =
         ImmutableStack<ParentCollectionItemTemplate<IStoreShard>> ->
         PlainContentId ->
         DagNodeRef ->
-            MappingStoreDagNodeRef option
+            ModificationResult
 
 
 type HookCollection = HookCollectionTemplate<IStoreShard>
