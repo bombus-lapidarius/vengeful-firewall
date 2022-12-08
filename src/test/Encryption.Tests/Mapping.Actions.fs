@@ -300,7 +300,7 @@ let ``ensure the correct ordering of parent collection items``
         { new IStoreShard with
             member this.Kind = ShardingKind.HAMT // TODO
 
-            member this.Find parentCollection key =
+            member this.Find(parentCollection, key) =
                 let next =
                     key |> plainContentIdToUInt |> iterator characteristicValue
                 match next with
@@ -314,17 +314,17 @@ let ``ensure the correct ordering of parent collection items``
                     |> MappingStoreDagNodeRef
                     |> Tree
 
-            member this.Insert _ parentCollection key value = {
+            member this.Insert(_, parentCollection, key, value) = {
                 Root = (objectMockHelper "insert" parentCollection key value)
                 Pinset = ImmutableQueue.Create<PinsetItem>()
             }
 
-            member this.Update _ parentCollection key value = {
+            member this.Update(_, parentCollection, key, value) = {
                 Root = (objectMockHelper "update" parentCollection key value)
                 Pinset = ImmutableQueue.Create<PinsetItem>()
             }
 
-            member this.Delete _ parentCollection key value = {
+            member this.Delete(_, parentCollection, key, value) = {
                 Root = (objectMockHelper "delete" parentCollection key value)
                 Pinset = ImmutableQueue.Create<PinsetItem>()
             }

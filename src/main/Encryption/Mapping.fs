@@ -158,7 +158,7 @@ type IStoreShard =
     // arg: parentCollection
     // arg: index (or key)
     abstract member Find:
-        ImmutableStack<ParentCollectionItemTemplate<IStoreShard>> ->
+        ImmutableStack<ParentCollectionItemTemplate<IStoreShard>> *
         PlainContentId ->
             GenericStoreShardValue
 
@@ -167,9 +167,9 @@ type IStoreShard =
     // arg: index (or key)
     // arg: new or updated value
     abstract member Insert:
-        HookCollectionTemplate<IStoreShard> ->
-        ImmutableStack<ParentCollectionItemTemplate<IStoreShard>> ->
-        PlainContentId ->
+        HookCollectionTemplate<IStoreShard> *
+        ImmutableStack<ParentCollectionItemTemplate<IStoreShard>> *
+        PlainContentId *
         DagNodeRef ->
             ModificationResult
 
@@ -178,9 +178,9 @@ type IStoreShard =
     // arg: index (or key)
     // arg: new or updated value
     abstract member Update:
-        HookCollectionTemplate<IStoreShard> ->
-        ImmutableStack<ParentCollectionItemTemplate<IStoreShard>> ->
-        PlainContentId ->
+        HookCollectionTemplate<IStoreShard> *
+        ImmutableStack<ParentCollectionItemTemplate<IStoreShard>> *
+        PlainContentId *
         DagNodeRef ->
             ModificationResult
 
@@ -189,9 +189,9 @@ type IStoreShard =
     // arg: index (or key)
     // arg: new or updated value
     abstract member Delete:
-        HookCollectionTemplate<IStoreShard> ->
-        ImmutableStack<ParentCollectionItemTemplate<IStoreShard>> ->
-        PlainContentId ->
+        HookCollectionTemplate<IStoreShard> *
+        ImmutableStack<ParentCollectionItemTemplate<IStoreShard>> *
+        PlainContentId *
         DagNodeRef ->
             ModificationResult
 

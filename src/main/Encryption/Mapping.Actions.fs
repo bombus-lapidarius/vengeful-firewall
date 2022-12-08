@@ -103,7 +103,7 @@ let rec private lookupHelper<'TMappingPairValue, 'TResult>
 
     // apply the given function if we encounter a leaf
     // recurse otherwise
-    match parsedCurrentShard.Find parentCollection index with
+    match parsedCurrentShard.Find(parentCollection, index) with
     | Leaf (result) ->
         // keeping this generic enables us to use the same helper function for
         // both lookup and modification operations
@@ -231,11 +231,12 @@ let insert
     let modifyLeaf result (coreArgs: LeafOpCoreArgs<DagNodeRef>) =
         match result with
         | None ->
-            coreArgs.CurrentShard.Insert
-                hookCollection
-                coreArgs.ParentCollection
-                coreArgs.MappingPairIndex
+            coreArgs.CurrentShard.Insert (
+                hookCollection,
+                coreArgs.ParentCollection,
+                coreArgs.MappingPairIndex,
                 coreArgs.MappingPairValue
+            )
         | Some (_) ->
             raise (
                 System.ArgumentException
@@ -267,11 +268,12 @@ let update
     let modifyLeaf result (coreArgs: LeafOpCoreArgs<DagNodeRef>) =
         match result with
         | Some (_) ->
-            coreArgs.CurrentShard.Update
-                hookCollection
-                coreArgs.ParentCollection
-                coreArgs.MappingPairIndex
+            coreArgs.CurrentShard.Update (
+                hookCollection,
+                coreArgs.ParentCollection,
+                coreArgs.MappingPairIndex,
                 coreArgs.MappingPairValue
+            )
         | None ->
             raise (
                 Generic.KeyNotFoundException
@@ -300,11 +302,12 @@ let delete
     let modifyLeaf result (coreArgs: LeafOpCoreArgs<DagNodeRef>) =
         match result with
         | Some (_) ->
-            coreArgs.CurrentShard.Delete
-                hookCollection
-                coreArgs.ParentCollection
-                coreArgs.MappingPairIndex
+            coreArgs.CurrentShard.Delete (
+                hookCollection,
+                coreArgs.ParentCollection,
+                coreArgs.MappingPairIndex,
                 coreArgs.MappingPairValue
+            )
         | None ->
             raise (
                 Generic.KeyNotFoundException
