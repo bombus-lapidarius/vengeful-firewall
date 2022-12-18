@@ -168,8 +168,6 @@ let private hookCollectionMock
     {
         ParseOuter = parseOuterMock
         ParseInner = parseInnerMock fg
-        GetBlock = getBlockMock
-        PutBlock = putBlockMock
         DecryptBlock = decryptBlockMock
         EncryptBlock = encryptBlockMock
     }
@@ -314,17 +312,17 @@ let ``ensure the correct ordering of parent collection items``
                     |> MappingStoreDagNodeRef
                     |> Tree
 
-            member this.Insert(_, parentCollection, key, value) = {
+            member this.Insert(_, _, _, parentCollection, key, value) = {
                 Root = (objectMockHelper "insert" parentCollection key value)
                 Pinset = ImmutableQueue.Create<PinsetItem>()
             }
 
-            member this.Update(_, parentCollection, key, value) = {
+            member this.Update(_, _, _, parentCollection, key, value) = {
                 Root = (objectMockHelper "update" parentCollection key value)
                 Pinset = ImmutableQueue.Create<PinsetItem>()
             }
 
-            member this.Delete(_, parentCollection, key, value) = {
+            member this.Delete(_, _, _, parentCollection, key, value) = {
                 Root = (objectMockHelper "delete" parentCollection key value)
                 Pinset = ImmutableQueue.Create<PinsetItem>()
             }
@@ -358,6 +356,16 @@ let ``ensure the correct ordering of parent collection items``
 
             actionToTest
                 hookCollectionForTesting
+                { new IStorageHooks with
+                    member this.GetBlock(argument) = getBlockMock argument
+
+                    member this.PutBlock(argument) = putBlockMock argument
+                }
+                { new IPinningHooks with
+                    member this.UnpinContent(_) = ()
+
+                    member this.PinContent(_) = ()
+                }
                 rootForTesting
                 keyOrIndex
                 mappingValue

@@ -80,6 +80,8 @@ type private LeafOpType<'TMappingPairValue, 'TResult> =
 // this one is identical for all operations over the store
 let rec private lookupHelper<'TMappingPairValue, 'TResult>
     (hookCollection: HookCollection)
+    (storageHooks: IStorageHooks)
+    (pinningHooks: IPinningHooks)
     (leafOp: LeafOpType<'TMappingPairValue, 'TResult>)
     (index: PlainContentId)
     (value: 'TMappingPairValue)
@@ -91,8 +93,7 @@ let rec private lookupHelper<'TMappingPairValue, 'TResult>
 
     // fetch and decrypt the current shard
     let currentShardShardingKind, currentShardRawContent =
-        unwrappedShardId.Target
-        |> hookCollection.GetBlock
+        storageHooks.GetBlock(unwrappedShardId.Target)
         |> hookCollection.DecryptBlock unwrappedShardId.Cipher
         |> hookCollection.ParseOuter
 
@@ -127,6 +128,8 @@ let rec private lookupHelper<'TMappingPairValue, 'TResult>
 
         lookupHelper<'TMappingPairValue, 'TResult>
             hookCollection
+            storageHooks
+            pinningHooks
             leafOp
             index
             value
@@ -137,6 +140,8 @@ let rec private lookupHelper<'TMappingPairValue, 'TResult>
 [<CompiledName("Lookup")>]
 let lookup
     (hookCollection: HookCollection)
+    (storageHooks: IStorageHooks)
+    (pinningHooks: IPinningHooks)
     (root: Root)
     (index: PlainContentId)
     //(value: DagNodeRef)
@@ -147,6 +152,8 @@ let lookup
     // recurse
     lookupHelper<unit, DagNodeRef option>
         hookCollection
+        storageHooks
+        pinningHooks
         (fun result _ -> result)
         index
         ()
@@ -186,6 +193,8 @@ let private updateRootAtomically
 
 let rec private modifyHelper
     (hookCollection: HookCollection)
+    (storageHooks: IStorageHooks)
+    (pinningHooks: IPinningHooks)
     (modify: LeafOpType<DagNodeRef, ModificationResult>)
     (index: PlainContentId)
     (value: DagNodeRef)
@@ -197,6 +206,8 @@ let rec private modifyHelper
     let intermediateResult =
         lookupHelper<DagNodeRef, ModificationResult>
             hookCollection
+            storageHooks
+            pinningHooks
             modify
             index
             value
@@ -207,6 +218,8 @@ let rec private modifyHelper
     let recursor =
         modifyHelper
             hookCollection
+            storageHooks
+            pinningHooks
             modify
             index
             value
@@ -223,6 +236,8 @@ let rec private modifyHelper
 [<CompiledName("Insert")>]
 let insert
     (hookCollection: HookCollection)
+    (storageHooks: IStorageHooks)
+    (pinningHooks: IPinningHooks)
     (root: Root)
     (index: PlainContentId)
     (value: DagNodeRef)
@@ -233,6 +248,8 @@ let insert
         | None ->
             coreArgs.CurrentShard.Insert (
                 hookCollection,
+                storageHooks,
+                pinningHooks,
                 coreArgs.ParentCollection,
                 coreArgs.MappingPairIndex,
                 coreArgs.MappingPairValue
@@ -247,6 +264,8 @@ let insert
 
     modifyHelper
         hookCollection
+        storageHooks
+        pinningHooks
         modifyLeaf
         index
         value
@@ -260,6 +279,8 @@ let insert
 [<CompiledName("Update")>]
 let update
     (hookCollection: HookCollection)
+    (storageHooks: IStorageHooks)
+    (pinningHooks: IPinningHooks)
     (root: Root)
     (index: PlainContentId)
     (value: DagNodeRef)
@@ -270,6 +291,8 @@ let update
         | Some (_) ->
             coreArgs.CurrentShard.Update (
                 hookCollection,
+                storageHooks,
+                pinningHooks,
                 coreArgs.ParentCollection,
                 coreArgs.MappingPairIndex,
                 coreArgs.MappingPairValue
@@ -284,6 +307,8 @@ let update
 
     modifyHelper
         hookCollection
+        storageHooks
+        pinningHooks
         modifyLeaf
         index
         value
@@ -294,6 +319,8 @@ let update
 [<CompiledName("Delete")>]
 let delete
     (hookCollection: HookCollection)
+    (storageHooks: IStorageHooks)
+    (pinningHooks: IPinningHooks)
     (root: Root)
     (index: PlainContentId)
     (value: DagNodeRef)
@@ -304,6 +331,8 @@ let delete
         | Some (_) ->
             coreArgs.CurrentShard.Delete (
                 hookCollection,
+                storageHooks,
+                pinningHooks,
                 coreArgs.ParentCollection,
                 coreArgs.MappingPairIndex,
                 coreArgs.MappingPairValue
@@ -318,6 +347,8 @@ let delete
 
     modifyHelper
         hookCollection
+        storageHooks
+        pinningHooks
         modifyLeaf
         index
         value

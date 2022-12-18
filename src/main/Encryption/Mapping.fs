@@ -106,11 +106,21 @@ type ShardingKind =
 type HookCollectionTemplate<'TParserResult> = {
     ParseOuter: PlainContent -> ShardingKind * PlainContent
     ParseInner: ShardingKind -> PlainContent -> 'TParserResult
-    GetBlock: EncryptedContentId -> EncryptedContent
-    PutBlock: EncryptedContent -> EncryptedContentId
     DecryptBlock: byte [] -> EncryptedContent -> PlainContent
     EncryptBlock: byte [] -> PlainContent -> EncryptedContent
 }
+
+
+type IStorageHooks =
+    abstract member GetBlock: EncryptedContentId -> EncryptedContent
+
+    abstract member PutBlock: EncryptedContent -> EncryptedContentId
+
+
+type IPinningHooks =
+    abstract member UnpinContent: EncryptedContentId -> unit
+
+    abstract member PinContent: EncryptedContentId -> unit
 
 
 // This shall serve as a vehicle for potential future forwards-compatibility
@@ -168,6 +178,8 @@ type IStoreShard =
     // arg: new or updated value
     abstract member Insert:
         HookCollectionTemplate<IStoreShard> *
+        IStorageHooks *
+        IPinningHooks *
         ImmutableStack<ParentCollectionItemTemplate<IStoreShard>> *
         PlainContentId *
         DagNodeRef ->
@@ -179,6 +191,8 @@ type IStoreShard =
     // arg: new or updated value
     abstract member Update:
         HookCollectionTemplate<IStoreShard> *
+        IStorageHooks *
+        IPinningHooks *
         ImmutableStack<ParentCollectionItemTemplate<IStoreShard>> *
         PlainContentId *
         DagNodeRef ->
@@ -190,6 +204,8 @@ type IStoreShard =
     // arg: new or updated value
     abstract member Delete:
         HookCollectionTemplate<IStoreShard> *
+        IStorageHooks *
+        IPinningHooks *
         ImmutableStack<ParentCollectionItemTemplate<IStoreShard>> *
         PlainContentId *
         DagNodeRef ->
