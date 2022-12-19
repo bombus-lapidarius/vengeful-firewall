@@ -92,15 +92,13 @@ let rec private lookupHelper<'TMappingPairValue, 'TResult>
     let (MappingStoreDagNodeRef unwrappedShardId) = currentShard
 
     // fetch and decrypt the current shard
-    let currentShardShardingKind, currentShardRawContent =
+    let parseInner, innerShard =
         storageHooks.GetBlock(unwrappedShardId.Target)
         |> hookCollection.DecryptBlock unwrappedShardId.Cipher
         |> hookCollection.ParseOuter
 
     // call the correct IStoreShard parser
-    let parsedCurrentShard =
-        currentShardRawContent
-        |> hookCollection.ParseInner currentShardShardingKind
+    let parsedCurrentShard = parseInner innerShard
 
     // apply the given function if we encounter a leaf
     // recurse otherwise

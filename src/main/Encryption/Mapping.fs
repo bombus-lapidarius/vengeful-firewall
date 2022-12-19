@@ -89,14 +89,12 @@ type Root = {
 }
 
 
-// TODO: extend at run time (using attributes)
-type ShardingKind =
-    | HAMT = 0x00uL
+[<Struct>]
+type ShardingKind = | ShardingKind of System.Guid
 
 
-// "outer" parser: determine the sharding algorithm in order to call the correct
-// "inner" parser at runtime
-// "inner" parser: call the appropriate constructor or parser method
+[<Struct>]
+type InnerShard = | InnerShard of PlainContent
 
 
 // This type's instances need to be immutable to guarantee consistency
@@ -104,8 +102,7 @@ type ShardingKind =
 [<NoComparison>]
 [<NoEquality>]
 type HookCollectionTemplate<'TParserResult> = {
-    ParseOuter: PlainContent -> ShardingKind * PlainContent
-    ParseInner: ShardingKind -> PlainContent -> 'TParserResult
+    ParseOuter: PlainContent -> (InnerShard -> 'TParserResult) * InnerShard
     DecryptBlock: byte [] -> EncryptedContent -> PlainContent
     EncryptBlock: byte [] -> PlainContent -> EncryptedContent
 }

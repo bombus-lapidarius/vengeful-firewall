@@ -126,17 +126,17 @@ let private makeDagNodeRef (target: EncryptedContentId) =
     }
 
 
-let private parseOuterMock (argument: PlainContent) =
-    ShardingKind.HAMT, argument
-
 let private parseInnerMock
     (fg: MappingStoreDagNodeRefMock -> IStoreShard)
-    _
-    (argument: PlainContent)
+    (argument: InnerShard)
     =
 
+    let (InnerShard bare) = argument
     // This mock relies on a mock IStoreShard implementation to do its work.
-    argument |> plainContentToUInt |> MappingStoreDagNodeRefMock |> fg
+    bare |> plainContentToUInt |> MappingStoreDagNodeRefMock |> fg
+
+let private parseOuterMock fg (argument: PlainContent) =
+    (fg |> parseInnerMock), (argument |> InnerShard)
 
 // TODO: adjust when switching from GenericContentId to GenericContentIdFuture
 let private getBlockMock (argument: EncryptedContentId) =
@@ -166,8 +166,7 @@ let private hookCollectionMock
     : HookCollection =
 
     {
-        ParseOuter = parseOuterMock
-        ParseInner = parseInnerMock fg
+        ParseOuter = parseOuterMock fg
         DecryptBlock = decryptBlockMock
         EncryptBlock = encryptBlockMock
     }
@@ -296,7 +295,9 @@ let ``ensure the correct ordering of parent collection items``
 
         // This anonymous mock object will be injected during testing.
         { new IStoreShard with
-            member this.Kind = ShardingKind.HAMT // TODO
+            member this.Kind =
+                System.Guid("eaca8d82-4a7c-42e2-b20c-43efa0971472")
+                |> ShardingKind
 
             member this.Find(parentCollection, key) =
                 let next =
