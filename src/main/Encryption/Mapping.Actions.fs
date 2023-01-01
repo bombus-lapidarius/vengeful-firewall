@@ -140,12 +140,12 @@ let lookup
     (hookCollection: HookCollection)
     (storageHooks: IStorageHooks)
     (pinningHooks: IPinningHooks)
-    (root: Root)
+    (root: MappingStoreDagNodeRef ref)
     (index: PlainContentId)
     //(value: DagNodeRef)
     : DagNodeRef option =
 
-    let currentRootValue = root.TopLevelNode
+    let currentRootValue = Volatile.Read(root)
 
     // recurse
     lookupHelper<unit, DagNodeRef option>
@@ -161,7 +161,7 @@ let lookup
 
 let private updateRootAtomically
     continuation
-    (root: Root)
+    (root: MappingStoreDagNodeRef ref)
     (newValue: MappingStoreDagNodeRef)
     (oldValue: MappingStoreDagNodeRef)
     : bool =
@@ -176,7 +176,7 @@ let private updateRootAtomically
     // successfully updated the root node ourselves.
     let resultingValue =
         Interlocked.CompareExchange<MappingStoreDagNodeRef>(
-            &(root.TopLevelNode),
+            root,
             newValue,
             oldValue
         )
@@ -196,7 +196,7 @@ let rec private modifyHelper
     (modify: LeafOpType<DagNodeRef, ModificationResult>)
     (index: PlainContentId)
     (value: DagNodeRef)
-    (root: Root)
+    (root: MappingStoreDagNodeRef ref)
     (currentDagNode: MappingStoreDagNodeRef)
     : bool =
 
@@ -236,7 +236,7 @@ let insert
     (hookCollection: HookCollection)
     (storageHooks: IStorageHooks)
     (pinningHooks: IPinningHooks)
-    (root: Root)
+    (root: MappingStoreDagNodeRef ref)
     (index: PlainContentId)
     (value: DagNodeRef)
     : bool =
@@ -258,7 +258,7 @@ let insert
                     "the specified key already exists"
             )
 
-    let currentRootValue = root.TopLevelNode
+    let currentRootValue = Volatile.Read(root)
 
     modifyHelper
         hookCollection
@@ -279,7 +279,7 @@ let update
     (hookCollection: HookCollection)
     (storageHooks: IStorageHooks)
     (pinningHooks: IPinningHooks)
-    (root: Root)
+    (root: MappingStoreDagNodeRef ref)
     (index: PlainContentId)
     (value: DagNodeRef)
     : bool =
@@ -301,7 +301,7 @@ let update
                     "no entry for the specified key found"
             )
 
-    let currentRootValue = root.TopLevelNode
+    let currentRootValue = Volatile.Read(root)
 
     modifyHelper
         hookCollection
@@ -319,7 +319,7 @@ let delete
     (hookCollection: HookCollection)
     (storageHooks: IStorageHooks)
     (pinningHooks: IPinningHooks)
-    (root: Root)
+    (root: MappingStoreDagNodeRef ref)
     (index: PlainContentId)
     (value: DagNodeRef)
     : bool =
@@ -341,7 +341,7 @@ let delete
                     "no entry for the specified key found"
             )
 
-    let currentRootValue = root.TopLevelNode
+    let currentRootValue = Volatile.Read(root)
 
     modifyHelper
         hookCollection

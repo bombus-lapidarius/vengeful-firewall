@@ -81,14 +81,6 @@ type DagNodeRef = {
 type MappingStoreDagNodeRef = | MappingStoreDagNodeRef of DagNodeRef
 
 
-// TODO: use an off-the-shelf F# reference cell?
-// TODO: include a reference to the previous root?
-[<NoComparison>]
-type Root = {
-    mutable TopLevelNode: MappingStoreDagNodeRef
-}
-
-
 [<Struct>]
 type ShardingKind = | ShardingKind of System.Guid
 

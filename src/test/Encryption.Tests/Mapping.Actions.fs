@@ -59,6 +59,7 @@ SOFTWARE.
 
 
 open System.Collections.Immutable
+open System.Threading
 open System.Linq
 
 
@@ -331,11 +332,8 @@ let ``ensure the correct ordering of parent collection items``
 
     let testAction actionToTest: unit =
         // Prepare a state container for the result.
-        let rootForTesting = {
-            TopLevelNode =
-                MappingStoreDagNodeRef
-                    (0x00000000UL |> fromUInt64 |> makeDagNodeRef)
-        }
+        let rootForTesting =
+            ref (0x00000000UL |> fromUInt64 |> makeDagNodeRef |> MappingStoreDagNodeRef)
 
         let (ignoreMe: bool) =
             let storeShardForTesting =
@@ -374,7 +372,7 @@ let ``ensure the correct ordering of parent collection items``
         // This will probably become obsolete in the future.
         ignoreMe |> ignore
 
-        let (MappingStoreDagNodeRef result) = rootForTesting.TopLevelNode
+        let (MappingStoreDagNodeRef result) = Volatile.Read(rootForTesting)
 
         Assert.AreEqual(
             (0xffffffffUL |> fromUInt64 |> makeDagNodeRef),
